@@ -8,13 +8,15 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build:min": "./scripts/minify.sh sp-dashboard",
-    "check:syntax": "node scripts/check-js.js"  
+    "check:syntax": "node scripts/check-js.js",
+    "screenshot": "node scripts/screenshot.js"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
     "html-minifier-terser": "^6.1.0",
     "jsdom": "^23.0.0",
+    "puppeteer": "^24.37.5",
     "vitest": "^1.0.4"
   },
   "keywords": [

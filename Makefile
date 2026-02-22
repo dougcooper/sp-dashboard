@@ -26,6 +26,11 @@ build: clean
 	@cd build/$(PLUGIN_DIR) && zip -r ../../$(ZIP_FILE) . -x "manifest.json.template"
 	@echo "✓ Plugin packaged successfully: $(ZIP_FILE)"
 
+screenshot:
+	@echo "Generating screenshot..."
+	@node scripts/screenshot.js
+	@echo "✓ Screenshot updated (assets/screenshot.png)"
+
 # Clean up generated files
 clean:
 	@echo "Cleaning up..."
@@ -106,6 +111,7 @@ help:
 	@echo "                       • Creates GitHub release"
 	@echo "  make release-check - Verify release prerequisites"
 	@echo "  make clean         - Remove generated zip files"
+	@echo "  make screenshot     - Generate/update assets/screenshot.png via Puppeteer"
 	@echo "  make help          - Show this help message"
 	@echo ""
 	@echo "Current version: $(VERSION)"

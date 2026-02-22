@@ -10,6 +10,13 @@ A lightweight dashboard plugin for [Super Productivity](https://super-productivi
 - Two views:
   - **Dashboard** with key metrics, bar charts and pie charts
   - **Detailed list** of individual time entries and task status
+
+## 🖼️ Preview
+
+Below is a screenshot of the dashboard rendered outside of the host app (mock data is used when `PluginAPI` is not available):
+
+![Dashboard Screenshot](assets/screenshot.png)
+
 - Native charts rendered with vanilla JS and CSS (no charting libraries)
 - Responsive layout and theming consistent with Super Productivity
 - Live updates when task data changes in the host app
@@ -73,6 +80,18 @@ npm run test:coverage # generate coverage report
 # or simply
 make test
 ```
+
+### Updating the screenshot
+
+The screenshot is stored under `assets/screenshot.png` and tracked with Git LFS.
+You can regenerate it with:
+
+```bash
+npm run screenshot   # uses puppeteer
+# or
+make screenshot
+```
+
 
 The tests load `index.html` via JSDOM and manually execute the embedded script. They cover utility functions, metric calculations, and basic UI interactions.
 

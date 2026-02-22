@@ -1,5 +1,9 @@
 {
     "chat.tools.terminal.autoApprove": {
-        "make": true
+        "make": true,
+        "/^node screenshot\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }
