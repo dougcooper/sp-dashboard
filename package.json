@@ -7,7 +7,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "build:min": "./scripts/minify.sh sp-dashboard"
+    "build:min": "./scripts/minify.sh sp-dashboard",
+    "check:syntax": "node scripts/check-js.js"  
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^1.0.4",
@@ -22,5 +23,8 @@
     "dashboard"
   ],
   "author": "Super Productivity Community",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "acorn": "^8.16.0"
+  }
 }
