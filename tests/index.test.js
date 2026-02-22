@@ -107,9 +107,7 @@ describe('Date Range Reporter UI', () => {
       const dashBtn = document.getElementById('tab-btn-dashboard');
       const detailsBtn = document.getElementById('tab-btn-details');
 
-      // Default state: Detailed view is active by default, dashboard is hidden
-      // Let's force switch to dashboard
-      window.switchTab('dashboard');
+      // Default state: Dashboard should be visible and active
       expect(dashView.classList.contains('hidden')).toBe(false);
       expect(detailsView.classList.contains('hidden')).toBe(true);
       expect(dashBtn.classList.contains('active')).toBe(true);
@@ -119,6 +117,11 @@ describe('Date Range Reporter UI', () => {
       expect(dashView.classList.contains('hidden')).toBe(true);
       expect(detailsView.classList.contains('hidden')).toBe(false);
       expect(detailsBtn.classList.contains('active')).toBe(true);
+
+      // back to dashboard again
+      window.switchTab('dashboard');
+      expect(dashView.classList.contains('hidden')).toBe(false);
+      expect(dashBtn.classList.contains('active')).toBe(true);
     });
 
     it('should show custom date pickers only when Custom Range is selected', () => {
