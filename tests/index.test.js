@@ -185,10 +185,10 @@ describe('Date Range Reporter UI', () => {
       const lateTask = { id:'t2', parentId:null, title:'Bar', isDone:true, doneOn: now, dueDay: yesterdayStr, timeSpentOnDay:{} };
       window.processData([overdueTask, lateTask], []);
 
+
       // verify list badges
       const rows = document.querySelectorAll('#details-table-body tr');
       expect(rows.length).toBe(2);
-      // both badges should appear somewhere in the table
       const text = Array.from(rows).map(r => r.textContent).join(' ');
       expect(text).toContain('Overdue');
       expect(text).toContain('Late');
@@ -197,6 +197,17 @@ describe('Date Range Reporter UI', () => {
       const pieSelect = document.getElementById('pie-chart-select');
       const barContainer = document.getElementById('bar-chart-container');
       const pieContainer = document.getElementById('pie-chart-element');
+
+      // bar count limits for presets
+      const preset = document.getElementById('date-preset');
+      preset.value = 'month';
+      preset.dispatchEvent(new Event('change'));
+      window.processData([overdueTask, lateTask], []);
+      expect(barContainer.querySelectorAll('.bar-col').length).toBeLessThanOrEqual(12);
+      preset.value = 'year';
+      preset.dispatchEvent(new Event('change'));
+      window.processData([overdueTask, lateTask], []);
+      expect(barContainer.querySelectorAll('.bar-col').length).toBeLessThanOrEqual(12);
 
       barSelect.value = 'overdue';
       window.updateBarChart();
@@ -225,13 +236,16 @@ describe('Date Range Reporter UI', () => {
       // capture initial order of date cells
       const initial = Array.from(document.querySelectorAll('#details-table-body tr td:first-child')).map(td => td.textContent);
       expect(initial.length).toBe(2);
-      // click date header to toggle order
+      // click date header to toggle order and check indicator
       const dateTh = document.querySelector('#view-details th[data-sort="date"]');
       dateTh.click();
+      expect(dateTh.classList.contains('sorted-asc')).toBe(true);
       const after = Array.from(document.querySelectorAll('#details-table-body tr td:first-child')).map(td => td.textContent);
-      // the arrays should be reversed
       expect(after[0]).toBe(initial[1]);
       expect(after[1]).toBe(initial[0]);
+      // clicking again flips direction
+      dateTh.click();
+      expect(dateTh.classList.contains('sorted-desc')).toBe(true);
     });
   });
 });
