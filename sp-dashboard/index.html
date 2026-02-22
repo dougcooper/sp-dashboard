@@ -453,7 +453,7 @@
       latestMetrics = metrics;
 
       document.getElementById('stat-time').innerText = formatTime(metrics.totalTimeSpent);
-      document.getElementById('stat-tasks').innerText = metrics.totalCompleted;
+      document.getElementById('stat-tasks').innerText = String(metrics.totalCompleted);
       document.getElementById('stat-tasks-total').innerText = `/ ${metrics.totalTasks} total`;
       
       const progress = metrics.totalTasks > 0 ? (metrics.totalCompleted / metrics.totalTasks) * 100 : 0;
@@ -461,7 +461,7 @@
       
       const overdueEl = document.getElementById('stat-overdue');
       const overdueLabel = document.getElementById('stat-overdue-label');
-      overdueEl.innerText = metrics.overdueTasks;
+      overdueEl.innerText = String(metrics.overdueTasks);
       
       if (metrics.overdueTasks > 0) {
         overdueLabel.classList.remove('hidden');
@@ -701,6 +701,13 @@
       metrics.tableEntries.sort((a, b) => b.date.localeCompare(a.date));
       updateDashboardUI(metrics);
     };
+
+    // expose key utilities for testing (JSDOM environment won't execute script tags normally)
+    window.formatTime = formatTime;
+    window.formatDateShort = formatDateShort;
+    window.getDatesInRange = getDatesInRange;
+    window.switchTab = switchTab;
+    window.processData = processData;
 
     // --- SP INTEGRATION / NATIVE IFRAME COMMS ---
     const pullDataFromSP = async () => {
