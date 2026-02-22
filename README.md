@@ -46,15 +46,14 @@ README.md                # This file
 
 ---
 
-## 📦 Installation & Setup (for plugin users)
+## 📦 Installation
 
-1. Place the generated ZIP (created by `make build`) into Super Productivity's plugin folder:
-   ```bash
-   # example directory, replace with your OS path
-   ~/.config/superProductivity/plugins
-   ```
-2. Restart Super Productivity or install via the plugin manager UI.
-3. Click the **Date Range Reporter** header button to open the dashboard.
+1. Download the plugin files for the latest [Release](https://github.com/dougcooper/sp-dashboard/releases)
+2. Open Super Productivity
+3. Go to Settings → Plugins
+4. Click "Load Plugin from Folder"
+5. Select the `sp-dashboard` zip file
+6. The plugin will be activated automatically
 
 ---
 
@@ -98,6 +97,8 @@ The tests load `index.html` via JSDOM and manually execute the embedded script. 
 ### Building for release
 
 ```bash
+make
+#or
 make build        # compiles plugin into /build/sp-dashboard zip ready for distribution
 ```
 
@@ -123,11 +124,11 @@ make build        # compiles plugin into /build/sp-dashboard zip ready for distr
 
 ## 📬 Reporting Issues & Contributing
 
-Please file issues or pull requests against the [GitHub repository](https://github.com/yourusername/sp-dashboard) with
+Please file issues or pull requests against the [GitHub repository](https://github.com/dougcooper/sp-dashboard) with
 clear descriptions and, if applicable, screenshots. Contributions are welcome!
 
 ---
 
 ## 🗂️ License
 
-MIT © 2026 Your Name
+MIT © 2026 Douglas Cooper
