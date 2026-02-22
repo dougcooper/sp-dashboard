@@ -3,158 +3,228 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Productivity Dashboard</title>
+  <title>Date Range Reporter</title>
   
   <style>
-    /* --- THEME VARIABLES --- */
-    :root {
-      color-scheme: dark;
-      --sp-bg: #121212;
-      --sp-surface: #1e1e1e;
-      --sp-border: #333333;
-      --sp-primary: #03a9f4;
-      --sp-accent: #b388ff;
-      --sp-text: #ffffff;
-      --sp-muted: #9e9e9e;
-      
-      --color-green: #4ade80;
-      --color-blue: #60a5fa;
-      --color-red: #f87171;
-      --color-yellow: #fbbf24;
-      --color-pink: #f472b6;
-      
-      --bg-green-soft: rgba(74, 222, 128, 0.1);
-      --bg-blue-soft: rgba(96, 165, 250, 0.1);
-      --bg-red-soft: rgba(248, 113, 113, 0.1);
-    }
-
     /* --- BASE STYLES --- */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--sp-bg);
-      color: var(--sp-text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      padding: 1.5rem;
+      background-color: var(--bg, #121212);
+      color: var(--text-color, #ffffff);
+      font-family: var(--font-primary-stack, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
+      padding: var(--s3, 1.5rem);
+      margin: 0;
       height: 100vh;
-      overflow-y: auto;
+      box-sizing: border-box;
+      overflow: hidden;
     }
     
-    /* Scrollbar */
+    * { box-sizing: border-box; }
+
+    /* Scrollbar styling */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--sp-border); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #555; }
+    ::-webkit-scrollbar-thumb { background: var(--divider-color, #333); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-color-muted, #555); }
 
     /* --- LAYOUT & COMPONENTS --- */
-    .container { max-width: 1152px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
-    
-    .header { display: flex; flex-direction: column; gap: 1rem; border-bottom: 1px solid var(--sp-border); padding-bottom: 1rem; }
-    @media (min-width: 768px) { .header { flex-direction: row; justify-content: space-between; align-items: flex-end; } }
-    
-    .title { font-size: 1.875rem; font-weight: bold; letter-spacing: -0.025em; margin-bottom: 0.25rem; }
-    .subtitle { color: var(--sp-muted); font-size: 0.875rem; }
-    
-    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
-    .control-group { background: var(--sp-surface); padding: 0.5rem; border: 1px solid var(--sp-border); border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
-    .input-field { display: flex; flex-direction: column; min-width: 120px; }
-    .input-field label { font-size: 0.75rem; color: var(--sp-muted); margin-bottom: 0.25rem; }
-    .input-field input, .input-field select {
-      background: var(--sp-bg); color: var(--sp-text); border: 1px solid var(--sp-border);
-      border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.875rem; outline: none; font-family: inherit;
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: var(--s3, 1.5rem);
     }
-    .input-field input:focus, .input-field select:focus { border-color: var(--sp-primary); }
-
-    .card { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     
-    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
-    @media (min-width: 768px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s, 0.5rem);
+    }
+    @media (min-width: 768px) { 
+      .header { 
+        flex-direction: row; 
+        justify-content: space-between; 
+        align-items: center; 
+      } 
+    }
     
-    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
-    @media (min-width: 1024px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+    .title {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 var(--s-quarter, 0.25rem) 0;
+    }
+    
+    .subtitle {
+      color: var(--text-color-muted, #9e9e9e);
+      margin: 0;
+      font-size: 1rem;
+    }
+    
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: var(--s, 0.5rem);
+    }
+    
+    .control-box {
+      background: var(--card-bg, #1e1e1e);
+      border: 1px solid var(--divider-color, #333);
+      border-radius: var(--card-border-radius, 8px);
+      padding: var(--s, 0.5rem) var(--s2, 1rem);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
-    /* Stats */
+    .control-box label {
+      font-size: 0.75rem;
+      color: var(--text-color-muted, #9e9e9e);
+    }
+    
+    select, input[type="date"] {
+      background: transparent;
+      color: var(--text-color, #fff);
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 0;
+    }
+    select option {
+      background: var(--card-bg, #1e1e1e);
+      color: var(--text-color, #fff);
+    }
+
+    .main-card {
+      background: var(--card-bg, #1e1e1e);
+      border: 1px solid var(--divider-color, #333);
+      border-radius: var(--card-border-radius, 8px);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+      box-shadow: var(--whiteframe-shadow-2dp, 0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    /* --- TABS --- */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--divider-color, #333);
+      padding: 0 var(--s2, 1rem);
+      background: var(--card-bg, #1e1e1e);
+      flex-shrink: 0;
+    }
+    
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: var(--s2, 1rem) var(--s2, 1rem);
+      cursor: pointer;
+      color: var(--text-color-muted, #9e9e9e);
+      font-size: 1rem;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      outline: none;
+    }
+    
+    .tab-btn:hover { color: var(--text-color, #fff); }
+    .tab-btn.active {
+      color: var(--c-primary, #03a9f4);
+      border-bottom-color: var(--c-primary, #03a9f4);
+    }
+
+    /* --- VIEWS --- */
+    .view-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--s3, 1.5rem);
+    }
+    
+    .view-content.no-padding { padding: 0; }
+    .hidden { display: none !important; }
+    .text-red { color: #f87171 !important; }
+
+    /* --- DASHBOARD GRID --- */
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--s3, 1.5rem); margin-bottom: var(--s3, 1.5rem); }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: var(--s3, 1.5rem); margin-bottom: var(--s3, 1.5rem); }
+
+    .stat-card, .chart-card {
+      background: var(--bg, #121212);
+      border: 1px solid var(--divider-color, #333);
+      border-radius: var(--card-border-radius, 8px);
+      padding: var(--s2, 1rem);
+    }
+
     .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-    .stat-title { color: var(--sp-muted); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
-    .stat-icon { padding: 0.5rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
-    .stat-icon svg { width: 20px; height: 20px; }
+    .stat-title { color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
     .stat-value-container { display: flex; align-items: baseline; justify-content: space-between; }
     .stat-value { font-size: 2.25rem; font-weight: bold; }
-    .stat-suffix { color: var(--sp-muted); font-size: 0.875rem; margin-left: 0.25rem; }
+    .stat-suffix { color: var(--text-color-muted, #9e9e9e); font-size: 0.875rem; margin-left: 0.25rem; }
 
     /* Badges */
-    .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
-    .badge-red { background: var(--bg-red-soft); color: var(--color-red); }
-    .badge-green { background: var(--bg-green-soft); color: var(--color-green); }
-    .badge-blue { background: var(--bg-blue-soft); color: var(--color-blue); }
+    .badge { padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
+    .badge-red { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); }
+    .badge-done { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); }
+    .badge-progress { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.2); }
 
-    /* Progress Bar */
-    .progress-track { width: 100%; background: var(--sp-border); border-radius: 9999px; height: 6px; margin-top: 1rem; overflow: hidden; }
-    .progress-fill { background: var(--color-green); height: 100%; transition: width 0.5s ease-out; }
+    .stat-icon { padding: 0.5rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
+    .stat-icon svg { width: 20px; height: 20px; }
 
-    /* Utility */
-    .hidden { display: none !important; }
-    .text-red { color: var(--color-red) !important; }
-    
+    .progress-track { width: 100%; background: var(--divider-color, #333); border-radius: 9999px; height: 6px; margin-top: 1rem; overflow: hidden; }
+    .progress-fill { background: #4ade80; height: 100%; transition: width 0.5s ease-out; }
+
     /* Chart Controls */
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     .card-title { font-size: 1.125rem; font-weight: 600; margin: 0; }
-    .chart-select { background: var(--sp-surface); color: var(--sp-text); border: 1px solid var(--sp-border); border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; outline: none; cursor: pointer; font-family: inherit; }
-    .chart-select:focus { border-color: var(--sp-primary); }
-
-    /* --- TABS --- */
-    .tabs { display: flex; border-bottom: 1px solid var(--sp-border); gap: 1rem; margin-bottom: 0.5rem; }
-    .tab-btn {
-      background: none; border: none; padding: 0.75rem 1rem; cursor: pointer;
-      color: var(--sp-muted); font-size: 0.875rem; font-weight: 500;
-      border-bottom: 2px solid transparent; transition: all 0.2s;
-    }
-    .tab-btn:hover { color: var(--sp-text); }
-    .tab-btn.active { color: var(--sp-primary); border-bottom-color: var(--sp-primary); }
+    .chart-select { background: var(--card-bg, #1e1e1e); color: var(--text-color, #fff); border: 1px solid var(--divider-color, #333); border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; }
 
     /* --- NATIVE CHARTS --- */
     .chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; }
     
-    /* Native Bar Chart */
     .bar-chart { display: flex; align-items: flex-end; justify-content: space-around; width: 100%; height: 100%; padding-top: 1rem; gap: 4px; }
     .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
-    .bar { width: 100%; max-width: 32px; background: var(--sp-primary); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; position: relative; }
+    .bar { width: 100%; max-width: 32px; background: var(--c-primary, #03a9f4); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; position: relative; }
     .bar:hover::after {
       content: attr(data-val); position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
-      background: var(--sp-surface); border: 1px solid var(--sp-border); padding: 2px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; z-index: 10;
+      background: var(--card-bg, #1e1e1e); border: 1px solid var(--divider-color, #333); padding: 2px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; z-index: 10;
     }
-    .bar-label { font-size: 0.7rem; color: var(--sp-muted); margin-top: 0.5rem; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+    .bar-label { font-size: 0.7rem; color: var(--text-color-muted, #9e9e9e); margin-top: 0.5rem; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
 
-    /* Native Doughnut Chart */
     .pie-wrapper { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 2rem; }
     .pie-chart {
-      width: 180px; height: 180px; border-radius: 50%;
-      background: conic-gradient(var(--sp-border) 0% 100%);
-      /* Creates the hole in the middle */
+      width: 180px; height: 180px; border-radius: 50%; flex-shrink: 0;
+      background: conic-gradient(var(--divider-color, #333) 0% 100%);
       mask-image: radial-gradient(circle, transparent 58%, black 59%);
       -webkit-mask-image: radial-gradient(circle, transparent 58%, black 59%);
       transition: background 0.3s;
     }
     .pie-legend { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; padding-right: 0.5rem; }
     .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; }
-    .legend-label { display: flex; align-items: center; gap: 0.5rem; color: var(--sp-muted); }
-    .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .legend-label { display: flex; align-items: center; gap: 0.5rem; color: var(--text-color-muted, #9e9e9e); }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;}
     .legend-val { font-weight: 500; }
 
     /* --- TABLE (DETAILED LIST) --- */
-    .table-responsive { overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 220px); }
-    .table-responsive::-webkit-scrollbar { width: 8px; height: 8px; }
-    .table-responsive::-webkit-scrollbar-track { background: transparent; }
-    .table-responsive::-webkit-scrollbar-thumb { background: var(--sp-border); border-radius: 4px; }
-    .table-responsive::-webkit-scrollbar-thumb:hover { background: #555; }
-    
     .details-table { width: 100%; border-collapse: collapse; text-align: left; }
-    .details-table th, .details-table td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--sp-border); }
-    .details-table th { background: var(--sp-surface); color: var(--sp-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 500; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 var(--sp-border); }
+    .details-table th, .details-table td { 
+      padding: var(--s2, 1rem) var(--s3, 1.5rem); 
+      border-bottom: 1px solid var(--divider-color, #333); 
+    }
+    .details-table th { 
+      background: var(--card-bg, #1e1e1e); 
+      color: var(--text-color-muted, #9e9e9e); 
+      font-size: 0.75rem; 
+      text-transform: uppercase; 
+      font-weight: 500; 
+      position: sticky; 
+      top: 0; 
+      z-index: 10; 
+      box-shadow: 0 1px 0 var(--divider-color, #333); 
+    }
     .details-table tr:last-child td { border-bottom: none; }
-    .details-table tr:hover { background: rgba(255, 255, 255, 0.02); }
-    .task-cell { font-weight: 500; }
-    .project-cell { color: var(--sp-muted); font-size: 0.875rem; }
-    .time-cell { font-family: monospace; }
+    .details-table tr:hover { background: rgba(255, 255, 255, 0.03); }
+    .time-cell { font-family: monospace; font-size: 0.9rem; }
   </style>
 </head>
 <body>
@@ -163,163 +233,151 @@
     
     <!-- Header -->
     <header class="header">
-      <div>
+      <div class="title-area">
         <h1 class="title">Date Range Reporter</h1>
         <p class="subtitle">Select a time period to view metrics</p>
       </div>
       
       <div class="controls">
         <!-- Custom Date Pickers (Hidden by default) -->
-        <div id="custom-date-container" class="control-group hidden">
-          <div class="input-field">
+        <div id="custom-date-container" class="control-box hidden" style="flex-direction: row; gap: var(--s2, 1rem);">
+          <div style="display: flex; flex-direction: column;">
             <label for="date-from">From</label>
             <input type="date" id="date-from">
           </div>
-          <div class="input-field">
+          <div style="display: flex; flex-direction: column;">
             <label for="date-to">To</label>
             <input type="date" id="date-to">
           </div>
         </div>
 
         <!-- Preset Dropdown -->
-        <div class="control-group">
-          <div class="input-field">
-            <label for="date-preset">Period</label>
-            <select id="date-preset">
-              <option value="week" selected>Past Week</option>
-              <option value="month">Past Month</option>
-              <option value="year">Past Year</option>
-              <option value="custom">Custom Range...</option>
-            </select>
-          </div>
+        <div class="control-box">
+          <label for="date-preset">Period</label>
+          <select id="date-preset">
+            <option value="week" selected>Past Week</option>
+            <option value="month">Past Month</option>
+            <option value="year">Past Year</option>
+            <option value="custom">Custom Range...</option>
+          </select>
         </div>
       </div>
     </header>
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button id="tab-btn-dashboard" class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
-      <button id="tab-btn-details" class="tab-btn" onclick="switchTab('details')">Detailed List</button>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- VIEW 1: DASHBOARD                          -->
-    <!-- ========================================== -->
-    <div id="view-dashboard">
-      
-      <!-- Top Stats Row -->
-      <div class="grid-3" style="margin-bottom: 1.5rem;">
-        
-        <!-- Stat Card 1 -->
-        <div class="card">
-          <div class="stat-header">
-            <h3 class="stat-title">Total Time Tracked</h3>
-            <div class="stat-icon badge-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-          </div>
-          <div class="stat-value-container">
-            <span class="stat-value" id="stat-time">0h 0m</span>
-          </div>
-        </div>
-
-        <!-- Stat Card 2 -->
-        <div class="card">
-          <div class="stat-header">
-            <h3 class="stat-title">Tasks Completed</h3>
-            <div class="stat-icon badge-green"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-          </div>
-          <div class="stat-value-container">
-            <span class="stat-value" id="stat-tasks">0</span>
-            <span class="stat-suffix" id="stat-tasks-total">/ 0 total</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="stat-tasks-progress" style="width: 0%"></div>
-          </div>
-        </div>
-
-        <!-- Stat Card 3 -->
-        <div class="card">
-          <div class="stat-header">
-            <h3 class="stat-title">Overdue Tasks</h3>
-            <div class="stat-icon badge-red"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-          </div>
-          <div class="stat-value-container" style="align-items: center;">
-            <div>
-              <span class="stat-value" id="stat-overdue">0</span>
-              <span class="stat-suffix">tasks</span>
-            </div>
-            <span class="badge badge-red hidden" id="stat-overdue-label">Needs Attention</span>
-          </div>
-        </div>
-
+    <!-- Main Card Container -->
+    <div class="main-card">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button id="tab-btn-dashboard" class="tab-btn" onclick="switchTab('dashboard')">Dashboard</button>
+        <button id="tab-btn-details" class="tab-btn active" onclick="switchTab('details')">Detailed List</button>
       </div>
 
-      <!-- Charts Row -->
-      <div class="grid-2" style="margin-bottom: 1.5rem;">
+      <!-- ========================================== -->
+      <!-- VIEW 1: DASHBOARD                          -->
+      <!-- ========================================== -->
+      <div id="view-dashboard" class="view-content hidden">
         
-        <!-- Bar Chart (Dynamic) -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Daily Trends</h3>
-            <select id="bar-chart-select" class="chart-select">
-              <option value="time">Time Tracked</option>
-              <option value="completed">Tasks Completed</option>
-              <option value="overdue">Tasks Overdue</option>
-            </select>
-          </div>
-          <div class="chart-container">
-            <div class="bar-chart" id="bar-chart-container">
-              <!-- Bars injected by JS -->
+        <!-- Top Stats Row -->
+        <div class="grid-3">
+          
+          <div class="stat-card">
+            <div class="stat-header">
+              <h3 class="stat-title">Total Time Tracked</h3>
+              <div class="stat-icon" style="background: rgba(96, 165, 250, 0.1); color: #60a5fa;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+            </div>
+            <div class="stat-value-container">
+              <span class="stat-value" id="stat-time">0h 0m</span>
             </div>
           </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <h3 class="stat-title">Tasks Completed</h3>
+              <div class="stat-icon" style="background: rgba(74, 222, 128, 0.1); color: #4ade80;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+            </div>
+            <div class="stat-value-container">
+              <span class="stat-value" id="stat-tasks">0</span>
+              <span class="stat-suffix" id="stat-tasks-total">/ 0 total</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="stat-tasks-progress" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <h3 class="stat-title">Overdue Tasks</h3>
+              <div class="stat-icon badge-red"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+            </div>
+            <div class="stat-value-container" style="align-items: center;">
+              <div>
+                <span class="stat-value" id="stat-overdue">0</span>
+                <span class="stat-suffix">tasks</span>
+              </div>
+              <span class="badge badge-red hidden" id="stat-overdue-label">Needs Attention</span>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Pie Chart (Dynamic) -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Project Breakdown</h3>
-            <select id="pie-chart-select" class="chart-select">
-              <option value="time">Time Tracked</option>
-              <option value="completed">Tasks Completed</option>
-              <option value="overdue">Tasks Overdue</option>
-            </select>
+        <!-- Charts Row -->
+        <div class="grid-2">
+          
+          <div class="chart-card">
+            <div class="card-header">
+              <h3 class="card-title">Daily Trends</h3>
+              <select id="bar-chart-select" class="chart-select">
+                <option value="time">Time Tracked</option>
+                <option value="completed">Tasks Completed</option>
+                <option value="overdue">Tasks Overdue</option>
+              </select>
+            </div>
+            <div class="chart-container">
+              <div class="bar-chart" id="bar-chart-container"></div>
+            </div>
           </div>
-          <div class="chart-container">
-            <div class="pie-wrapper">
-              <div class="pie-chart" id="pie-chart-element"></div>
-              <div class="pie-legend" id="pie-legend-container">
-                <!-- Legend injected by JS -->
+
+          <div class="chart-card">
+            <div class="card-header">
+              <h3 class="card-title">Project Breakdown</h3>
+              <select id="pie-chart-select" class="chart-select">
+                <option value="time">Time Tracked</option>
+                <option value="completed">Tasks Completed</option>
+                <option value="overdue">Tasks Overdue</option>
+              </select>
+            </div>
+            <div class="chart-container">
+              <div class="pie-wrapper">
+                <div class="pie-chart" id="pie-chart-element"></div>
+                <div class="pie-legend" id="pie-legend-container"></div>
               </div>
             </div>
           </div>
-        </div>
 
-      </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- VIEW 2: DETAILED LIST                      -->
-    <!-- ========================================== -->
-    <div id="view-details" class="hidden">
-      <div class="card" style="padding: 0;">
-        <div class="table-responsive">
-          <table class="details-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Project</th>
-                <th>Task</th>
-                <th>Time Spent</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="details-table-body">
-              <!-- Rows injected by JS -->
-            </tbody>
-          </table>
         </div>
       </div>
-    </div>
 
+      <!-- ========================================== -->
+      <!-- VIEW 2: DETAILED LIST                      -->
+      <!-- ========================================== -->
+      <div id="view-details" class="view-content no-padding">
+        <table class="details-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Project</th>
+              <th>Task</th>
+              <th>Time Spent</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="details-table-body">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
   </div>
 
   <script>
@@ -333,8 +391,19 @@
     };
 
     const formatDateShort = (dateStr) => {
-      const d = new Date(dateStr + "T00:00:00"); // Append time to avoid timezone shifts
-      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      const d = new Date(dateStr + "T00:00:00"); 
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const getDatesInRange = (startDate, endDate) => {
+      const dates = [];
+      let currentDate = new Date(startDate);
+      const end = new Date(endDate);
+      while (currentDate <= end) {
+        dates.push(new Date(currentDate).toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      return dates;
     };
 
     // --- TAB LOGIC ---
@@ -349,8 +418,10 @@
     };
 
     // --- GLOBALS ---
-    let latestAppData = null;
+    let cachedTasks = [];
+    let cachedProjects = [];
     let latestMetrics = null;
+    // Base colors matching the UI kit logic (fallback hexes just in case)
     const PIE_COLORS = ['#03a9f4', '#b388ff', '#4ade80', '#f472b6', '#fbbf24', '#f87171', '#34d399', '#818cf8', '#a78bfa'];
 
     // --- INITIALIZE UI ---
@@ -369,11 +440,11 @@
       } else {
         customContainer.classList.add('hidden');
       }
-      processSuperProductivityData(latestAppData);
+      processData(cachedTasks, cachedProjects);
     });
 
-    document.getElementById('date-from').addEventListener('change', () => processSuperProductivityData(latestAppData));
-    document.getElementById('date-to').addEventListener('change', () => processSuperProductivityData(latestAppData));
+    document.getElementById('date-from').addEventListener('change', () => processData(cachedTasks, cachedProjects));
+    document.getElementById('date-to').addEventListener('change', () => processData(cachedTasks, cachedProjects));
     document.getElementById('bar-chart-select').addEventListener('change', () => updateBarChart());
     document.getElementById('pie-chart-select').addEventListener('change', () => updatePieChart());
 
@@ -381,7 +452,6 @@
     const updateDashboardUI = (metrics) => {
       latestMetrics = metrics;
 
-      // 1. Stats
       document.getElementById('stat-time').innerText = formatTime(metrics.totalTimeSpent);
       document.getElementById('stat-tasks').innerText = metrics.totalCompleted;
       document.getElementById('stat-tasks-total').innerText = `/ ${metrics.totalTasks} total`;
@@ -401,11 +471,8 @@
         overdueEl.classList.remove('text-red');
       }
 
-      // 2. Charts (Native)
       updateBarChart();
       updatePieChart();
-      
-      // 3. Table
       renderTable(metrics.tableEntries);
     };
 
@@ -413,11 +480,11 @@
       if (!latestMetrics) return;
       const type = document.getElementById('bar-chart-select').value;
       if (type === 'time') {
-        renderGenericBarChart(latestMetrics.weeklyData, 'bar-chart-container', 'var(--sp-primary)', (v) => `${(v / 3600000).toFixed(1)}h`);
+        renderGenericBarChart(latestMetrics.weeklyData, 'bar-chart-container', 'var(--c-primary, #03a9f4)', (v) => `${(v / 3600000).toFixed(1)}h`);
       } else if (type === 'completed') {
-        renderGenericBarChart(latestMetrics.completedPerDay, 'bar-chart-container', 'var(--color-green)', (v) => `${Math.round(v)} tasks`);
+        renderGenericBarChart(latestMetrics.completedPerDay, 'bar-chart-container', '#4ade80', (v) => `${Math.round(v)} tasks`);
       } else if (type === 'overdue') {
-        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', 'var(--color-red)', (v) => `${Math.round(v)} tasks`);
+        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#f87171', (v) => `${Math.round(v)} tasks`);
       }
     };
 
@@ -436,12 +503,9 @@
     const renderGenericBarChart = (chartData, containerId, color, formatFn) => {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
-      
       if (chartData.data.length === 0) return;
       
-      const maxVal = Math.max(...chartData.data, 1); // Avoid div by 0
-      
-      // Limit to max 30 bars to avoid crushing the UI on Yearly view
+      const maxVal = Math.max(...chartData.data, 1); 
       const maxBars = 30; 
       let step = Math.ceil(chartData.data.length / maxBars);
       
@@ -453,9 +517,8 @@
           chunkCount++;
         }
         
-        // Use average of chunk or direct if step is 1
         const val = step === 1 ? chunkSum : chunkSum / chunkCount; 
-        const label = chartData.labels[i].substring(5); // MM-DD
+        const label = chartData.labels[i].substring(5);
         const heightPct = (val / maxVal) * 100;
         const displayVal = formatFn(val);
 
@@ -478,7 +541,7 @@
       const totalVal = entries.reduce((acc, curr) => acc + curr[1], 0);
 
       if (totalVal === 0 || entries.length === 0) {
-        pieEl.style.background = 'var(--sp-border)';
+        pieEl.style.background = 'var(--divider-color, #333)';
         legendEl.innerHTML = '<div class="text-muted text-sm">No data for selected period</div>';
         return;
       }
@@ -490,11 +553,9 @@
         const color = PIE_COLORS[index % PIE_COLORS.length];
         const percent = (val / totalVal) * 100;
         
-        // CSS Conic Gradient string builder
         gradientStops.push(`${color} ${currentPercent}% ${currentPercent + percent}%`);
         currentPercent += percent;
 
-        // Add to Legend
         legendEl.innerHTML += `
           <div class="legend-item">
             <div class="legend-label">
@@ -505,7 +566,6 @@
           </div>
         `;
       });
-
       pieEl.style.background = `conic-gradient(${gradientStops.join(', ')})`;
     };
 
@@ -513,20 +573,20 @@
       const tbody = document.getElementById('details-table-body');
       
       if (entries.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--sp-muted); padding: 3rem;">No tracked time found for this date range.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">No tracked time found for this date range.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = entries.map(entry => `
         <tr>
-          <td>${formatDateShort(entry.date)}</td>
-          <td class="project-cell">${entry.projectName}</td>
-          <td class="task-cell">${entry.taskTitle}</td>
+          <td style="white-space: nowrap;">${formatDateShort(entry.date)}</td>
+          <td style="color: var(--text-color-muted, #9e9e9e); font-size: 0.875rem;">${entry.projectName}</td>
+          <td style="font-weight: 500;">${entry.taskTitle}</td>
           <td class="time-cell">${formatTime(entry.timeSpent)}</td>
           <td>
             ${entry.isDone 
-              ? `<span class="badge badge-green">Done</span>`
-              : `<span class="badge badge-blue">In Progress</span>`
+              ? `<span class="badge badge-done">Done</span>`
+              : `<span class="badge badge-progress">In Progress</span>`
             }
           </td>
         </tr>
@@ -534,24 +594,7 @@
     };
 
     // --- DATA PROCESSING ---
-    const getDatesInRange = (startDate, endDate) => {
-      const dates = [];
-      let currentDate = new Date(startDate);
-      const end = new Date(endDate);
-      while (currentDate <= end) {
-        dates.push(new Date(currentDate).toISOString().split('T')[0]);
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-      return dates;
-    };
-
-    const processSuperProductivityData = (appData) => {
-      if (!appData) return;
-      latestAppData = appData; 
-      
-      const tasks = Object.values(appData.task?.entities || {});
-      const projects = appData.project?.entities || {};
-      
+    const processData = (tasksArr, projectsArr) => {
       const preset = document.getElementById('date-preset').value;
       let dateFromStr, dateToStr;
 
@@ -577,6 +620,10 @@
       
       const dateRange = getDatesInRange(dateFromStr, dateToStr);
       
+      // Build lookup maps for faster processing
+      const projectMap = {};
+      projectsArr.forEach(p => projectMap[p.id] = p.title);
+      
       let metrics = {
         totalTimeSpent: 0,
         totalCompleted: 0,
@@ -593,10 +640,10 @@
 
       const now = Date.now();
 
-      tasks.forEach(task => {
+      tasksArr.forEach(task => {
         let taskTimeInRange = 0;
-        const pName = task.projectId && projects[task.projectId] 
-            ? projects[task.projectId].title 
+        const pName = task.projectId && projectMap[task.projectId] 
+            ? projectMap[task.projectId] 
             : 'Uncategorized';
 
         if (!task.isDone && task.plannedAt && task.plannedAt < now) {
@@ -604,22 +651,16 @@
           metrics.projectOverdueData[pName] = (metrics.projectOverdueData[pName] || 0) + 1;
         }
 
-        // Map Date string to End of Day timestamp for historical tracking
         dateRange.forEach((dateStr, index) => {
           const dayStart = new Date(dateStr + "T00:00:00").getTime();
           const dayEnd = dayStart + 86400000 - 1;
 
-          // Total time logic
+          // Time Spent Logging
           const spentOnDate = task.timeSpentOnDay && task.timeSpentOnDay[dateStr];
           if (spentOnDate) {
             metrics.weeklyData.data[index] += spentOnDate;
             taskTimeInRange += spentOnDate;
 
-            // Populate Table List entry
-            const projectName = task.projectId && projects[task.projectId] 
-              ? projects[task.projectId].title 
-              : 'Uncategorized';
-              
             metrics.tableEntries.push({
               date: dateStr,
               projectName: pName,
@@ -629,113 +670,102 @@
             });
           }
 
-          // Completed per day logic
+          // Completed Logic
           if (task.isDone && task.doneOn && task.doneOn >= dayStart && task.doneOn <= dayEnd) {
             metrics.completedPerDay.data[index]++;
             metrics.projectCompletedData[pName] = (metrics.projectCompletedData[pName] || 0) + 1;
           }
 
-          // Overdue per day logic
+          // Overdue Logic
           if (task.plannedAt && task.plannedAt < dayEnd) {
-            // It's overdue if it's not done, OR it was done AFTER this specific day
             if (!task.isDone || (task.doneOn && task.doneOn > dayEnd)) {
               metrics.overduePerDay.data[index]++;
             }
           }
         });
 
+        // Tally Project Time and Total Tasks if active in window
         if (taskTimeInRange > 0) {
           metrics.totalTimeSpent += taskTimeInRange;
-          if (!metrics.projectData[pName]) {
-            metrics.projectData[pName] = 0;
-          }
+          if (!metrics.projectData[pName]) metrics.projectData[pName] = 0;
           metrics.projectData[pName] += taskTimeInRange;
         }
 
         if (task.parentId === null && taskTimeInRange > 0) { 
           metrics.totalTasks++;
-          if (task.isDone) {
-            metrics.totalCompleted++;
-          }
+          if (task.isDone) metrics.totalCompleted++;
         }
       });
 
-      // Sort table entries descending by date
+      // Sort descending by date
       metrics.tableEntries.sort((a, b) => b.date.localeCompare(a.date));
-
       updateDashboardUI(metrics);
     };
 
-    // --- SP INTEGRATION ---
-    let isConnectedToSP = false;
+    // --- SP INTEGRATION / NATIVE IFRAME COMMS ---
+    const pullDataFromSP = async () => {
+      try {
+        if (window.PluginAPI) {
+          const activeTasks = await window.PluginAPI.getTasks() || [];
+          const archivedTasks = await window.PluginAPI.getArchivedTasks() || [];
+          cachedTasks = [...activeTasks, ...archivedTasks];
+          cachedProjects = await window.PluginAPI.getAllProjects() || [];
+          processData(cachedTasks, cachedProjects);
+        }
+      } catch (err) {
+        console.error("Dashboard failed to fetch SP data:", err);
+      }
+    };
+
+    // Listen for the light refresh trigger from plugin.js
     window.addEventListener('message', (event) => {
-      const data = event.data;
-      if (data && data.type === 'SYNC') {
-        isConnectedToSP = true;
-        processSuperProductivityData(data.payload);
+      if (event.data && event.data.type === 'SP_STATE_CHANGED') {
+        pullDataFromSP();
       }
     });
 
-    // --- MOCK DATA ---
+    // Initial Bootstrap & Fallback Data Generation
     setTimeout(() => {
-      if (!isConnectedToSP) {
-        console.log("No host detected. Loading mock data for preview...");
+      if (window.PluginAPI) {
+        pullDataFromSP();
+      } else {
+        console.log("No PluginAPI detected. Loading mock data...");
         
-        const mockPayload = {
-          project: {
-            entities: {
-              "p1": { id: "p1", title: "Website Redesign" },
-              "p2": { id: "p2", title: "Marketing Campaign" },
-              "p3": { id: "p3", title: "Backend API Server" },
-              "p4": { id: "p4", title: "Mobile App V2" }
-            }
-          },
-          task: {
-            entities: {}
-          }
-        };
-
-        const taskNames = [
-          "Create Figma Mockups", "Draft Email Copy", "Setup Database", "General Admin", 
-          "Review Pull Requests", "Weekly Sync Meeting", "Client Discovery Call", "Fix Navigation Bug", 
-          "Write Unit Tests", "Deploy to Staging", "Update API Documentation", "Optimize Hero Images", 
-          "Research Competitors", "Design App Icon", "Configure CI/CD Pipelines"
+        // Simulating the exact screenshot payload
+        const dates = [
+          new Date('2026-02-22').toISOString().split('T')[0],
+          new Date('2026-02-21').toISOString().split('T')[0],
+          new Date('2026-02-20').toISOString().split('T')[0],
+          new Date('2026-02-19').toISOString().split('T')[0]
         ];
-        const projectIds = ["p1", "p2", "p3", null, "p3", null, "p2", "p1", "p3", "p4", "p3", "p1", "p2", "p4", "p4"];
 
-        const mockToday = new Date();
-        const mockLastMonth = new Date();
-        mockLastMonth.setDate(mockToday.getDate() - 30);
-        const days = getDatesInRange(mockLastMonth, mockToday);
+        cachedProjects = [
+          { id: "p1", title: "Website Redesign" },
+          { id: "p2", title: "Marketing Campaign" }
+        ];
 
-        // Procedurally generate tasks and time entries
-        taskNames.forEach((title, i) => {
-          const taskId = `task${i+1}`;
-          const isDone = i % 3 === 0; // Every 3rd task is done
-          
-          mockPayload.task.entities[taskId] = {
-            parentId: null,
-            title: title,
-            isDone: isDone,
-            doneOn: isDone ? Date.now() - (i * 86400000) : null,
-            projectId: projectIds[i],
-            timeSpentOnDay: {},
-            plannedAt: !isDone && i % 2 === 0 ? Date.now() - (i * 86400000) : null
-          };
-
-          // Add time entries for the last 14 days to ensure the table overflows
-          for(let j = Math.max(0, days.length - 14); j < days.length; j++) {
-            // Scatter the data pseudo-randomly
-            if ((i + j) % 3 !== 0) { 
-              // Assign between 1 and 4 hours per entry
-              mockPayload.task.entities[taskId].timeSpentOnDay[days[j]] = ((i % 4) + 1) * 3600000; 
-            }
+        cachedTasks = [
+          {
+            id: "t1", parentId: null, title: "Create Figma Mockups", isDone: true, doneOn: new Date('2026-02-22T10:00Z').getTime(), projectId: "p1",
+            timeSpentOnDay: { [dates[0]]: 14400000 /* 4h */, [dates[1]]: 7200000 /* 2h */ }
+          },
+          {
+            id: "t2", parentId: null, title: "General Admin", isDone: false, projectId: null,
+            timeSpentOnDay: { [dates[0]]: 3600000 /* 1h */ }
+          },
+          {
+            id: "t3", parentId: null, title: "Draft Email Copy", isDone: true, doneOn: new Date('2026-02-20T10:00Z').getTime(), projectId: "p2",
+            timeSpentOnDay: { [dates[2]]: 18000000 /* 5h */ }
+          },
+          {
+            id: "t4", parentId: null, title: "Setup Database", isDone: false, projectId: "p1",
+            timeSpentOnDay: { [dates[3]]: 10800000 /* 3h */ }, plannedAt: new Date('2026-02-18T10:00Z').getTime() // Overdue
           }
-        });
+        ];
 
-        processSuperProductivityData(mockPayload);
+        processData(cachedTasks, cachedProjects);
       }
-    }, 1000);
+    }, 500);
 
   </script>
 </body>
