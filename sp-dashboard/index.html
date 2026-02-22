@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productivity Dashboard</title>
+  
+  <style>
+    /* --- THEME VARIABLES --- */
+    :root {
+      color-scheme: dark;
+      --sp-bg: #121212;
+      --sp-surface: #1e1e1e;
+      --sp-border: #333333;
+      --sp-primary: #03a9f4;
+      --sp-accent: #b388ff;
+      --sp-text: #ffffff;
+      --sp-muted: #9e9e9e;
+      
+      --color-green: #4ade80;
+      --color-blue: #60a5fa;
+      --color-red: #f87171;
+      --color-yellow: #fbbf24;
+      --color-pink: #f472b6;
+      
+      --bg-green-soft: rgba(74, 222, 128, 0.1);
+      --bg-blue-soft: rgba(96, 165, 250, 0.1);
+      --bg-red-soft: rgba(248, 113, 113, 0.1);
+    }
+
+    /* --- BASE STYLES --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--sp-bg);
+      color: var(--sp-text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 1.5rem;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--sp-border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+    /* --- LAYOUT & COMPONENTS --- */
+    .container { max-width: 1152px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+    
+    .header { display: flex; flex-direction: column; gap: 1rem; border-bottom: 1px solid var(--sp-border); padding-bottom: 1rem; }
+    @media (min-width: 768px) { .header { flex-direction: row; justify-content: space-between; align-items: flex-end; } }
+    
+    .title { font-size: 1.875rem; font-weight: bold; letter-spacing: -0.025em; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--sp-muted); font-size: 0.875rem; }
+    
+    .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+    .control-group { background: var(--sp-surface); padding: 0.5rem; border: 1px solid var(--sp-border); border-radius: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .input-field { display: flex; flex-direction: column; min-width: 120px; }
+    .input-field label { font-size: 0.75rem; color: var(--sp-muted); margin-bottom: 0.25rem; }
+    .input-field input, .input-field select {
+      background: var(--sp-bg); color: var(--sp-text); border: 1px solid var(--sp-border);
+      border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.875rem; outline: none; font-family: inherit;
+    }
+    .input-field input:focus, .input-field select:focus { border-color: var(--sp-primary); }
+
+    .card { background: var(--sp-surface); border: 1px solid var(--sp-border); border-radius: 1rem; padding: 1.5rem; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    @media (min-width: 768px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    @media (min-width: 1024px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Stats */
+    .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+    .stat-title { color: var(--sp-muted); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-icon { padding: 0.5rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; }
+    .stat-icon svg { width: 20px; height: 20px; }
+    .stat-value-container { display: flex; align-items: baseline; justify-content: space-between; }
+    .stat-value { font-size: 2.25rem; font-weight: bold; }
+    .stat-suffix { color: var(--sp-muted); font-size: 0.875rem; margin-left: 0.25rem; }
+
+    /* Badges */
+    .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
+    .badge-red { background: var(--bg-red-soft); color: var(--color-red); }
+    .badge-green { background: var(--bg-green-soft); color: var(--color-green); }
+    .badge-blue { background: var(--bg-blue-soft); color: var(--color-blue); }
+
+    /* Progress Bar */
+    .progress-track { width: 100%; background: var(--sp-border); border-radius: 9999px; height: 6px; margin-top: 1rem; overflow: hidden; }
+    .progress-fill { background: var(--color-green); height: 100%; transition: width 0.5s ease-out; }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    .text-red { color: var(--color-red) !important; }
+    
+    /* Chart Controls */
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .card-title { font-size: 1.125rem; font-weight: 600; margin: 0; }
+    .chart-select { background: var(--sp-surface); color: var(--sp-text); border: 1px solid var(--sp-border); border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; outline: none; cursor: pointer; font-family: inherit; }
+    .chart-select:focus { border-color: var(--sp-primary); }
+
+    /* --- TABS --- */
+    .tabs { display: flex; border-bottom: 1px solid var(--sp-border); gap: 1rem; margin-bottom: 0.5rem; }
+    .tab-btn {
+      background: none; border: none; padding: 0.75rem 1rem; cursor: pointer;
+      color: var(--sp-muted); font-size: 0.875rem; font-weight: 500;
+      border-bottom: 2px solid transparent; transition: all 0.2s;
+    }
+    .tab-btn:hover { color: var(--sp-text); }
+    .tab-btn.active { color: var(--sp-primary); border-bottom-color: var(--sp-primary); }
+
+    /* --- NATIVE CHARTS --- */
+    .chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; }
+    
+    /* Native Bar Chart */
+    .bar-chart { display: flex; align-items: flex-end; justify-content: space-around; width: 100%; height: 100%; padding-top: 1rem; gap: 4px; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
+    .bar { width: 100%; max-width: 32px; background: var(--sp-primary); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; position: relative; }
+    .bar:hover::after {
+      content: attr(data-val); position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
+      background: var(--sp-surface); border: 1px solid var(--sp-border); padding: 2px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; z-index: 10;
+    }
+    .bar-label { font-size: 0.7rem; color: var(--sp-muted); margin-top: 0.5rem; text-align: center; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Native Doughnut Chart */
+    .pie-wrapper { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 2rem; }
+    .pie-chart {
+      width: 180px; height: 180px; border-radius: 50%;
+      background: conic-gradient(var(--sp-border) 0% 100%);
+      /* Creates the hole in the middle */
+      mask-image: radial-gradient(circle, transparent 58%, black 59%);
+      -webkit-mask-image: radial-gradient(circle, transparent 58%, black 59%);
+      transition: background 0.3s;
+    }
+    .pie-legend { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; padding-right: 0.5rem; }
+    .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; }
+    .legend-label { display: flex; align-items: center; gap: 0.5rem; color: var(--sp-muted); }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .legend-val { font-weight: 500; }
+
+    /* --- TABLE (DETAILED LIST) --- */
+    .table-responsive { overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 220px); }
+    .table-responsive::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-responsive::-webkit-scrollbar-track { background: transparent; }
+    .table-responsive::-webkit-scrollbar-thumb { background: var(--sp-border); border-radius: 4px; }
+    .table-responsive::-webkit-scrollbar-thumb:hover { background: #555; }
+    
+    .details-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .details-table th, .details-table td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--sp-border); }
+    .details-table th { background: var(--sp-surface); color: var(--sp-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 500; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 0 var(--sp-border); }
+    .details-table tr:last-child td { border-bottom: none; }
+    .details-table tr:hover { background: rgba(255, 255, 255, 0.02); }
+    .task-cell { font-weight: 500; }
+    .project-cell { color: var(--sp-muted); font-size: 0.875rem; }
+    .time-cell { font-family: monospace; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header class="header">
+      <div>
+        <h1 class="title">Date Range Reporter</h1>
+        <p class="subtitle">Select a time period to view metrics</p>
+      </div>
+      
+      <div class="controls">
+        <!-- Custom Date Pickers (Hidden by default) -->
+        <div id="custom-date-container" class="control-group hidden">
+          <div class="input-field">
+            <label for="date-from">From</label>
+            <input type="date" id="date-from">
+          </div>
+          <div class="input-field">
+            <label for="date-to">To</label>
+            <input type="date" id="date-to">
+          </div>
+        </div>
+
+        <!-- Preset Dropdown -->
+        <div class="control-group">
+          <div class="input-field">
+            <label for="date-preset">Period</label>
+            <select id="date-preset">
+              <option value="week" selected>Past Week</option>
+              <option value="month">Past Month</option>
+              <option value="year">Past Year</option>
+              <option value="custom">Custom Range...</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button id="tab-btn-dashboard" class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+      <button id="tab-btn-details" class="tab-btn" onclick="switchTab('details')">Detailed List</button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: DASHBOARD                          -->
+    <!-- ========================================== -->
+    <div id="view-dashboard">
+      
+      <!-- Top Stats Row -->
+      <div class="grid-3" style="margin-bottom: 1.5rem;">
+        
+        <!-- Stat Card 1 -->
+        <div class="card">
+          <div class="stat-header">
+            <h3 class="stat-title">Total Time Tracked</h3>
+            <div class="stat-icon badge-blue"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+          </div>
+          <div class="stat-value-container">
+            <span class="stat-value" id="stat-time">0h 0m</span>
+          </div>
+        </div>
+
+        <!-- Stat Card 2 -->
+        <div class="card">
+          <div class="stat-header">
+            <h3 class="stat-title">Tasks Completed</h3>
+            <div class="stat-icon badge-green"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+          </div>
+          <div class="stat-value-container">
+            <span class="stat-value" id="stat-tasks">0</span>
+            <span class="stat-suffix" id="stat-tasks-total">/ 0 total</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="stat-tasks-progress" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Stat Card 3 -->
+        <div class="card">
+          <div class="stat-header">
+            <h3 class="stat-title">Overdue Tasks</h3>
+            <div class="stat-icon badge-red"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+          </div>
+          <div class="stat-value-container" style="align-items: center;">
+            <div>
+              <span class="stat-value" id="stat-overdue">0</span>
+              <span class="stat-suffix">tasks</span>
+            </div>
+            <span class="badge badge-red hidden" id="stat-overdue-label">Needs Attention</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid-2" style="margin-bottom: 1.5rem;">
+        
+        <!-- Bar Chart (Dynamic) -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Daily Trends</h3>
+            <select id="bar-chart-select" class="chart-select">
+              <option value="time">Time Tracked</option>
+              <option value="completed">Tasks Completed</option>
+              <option value="overdue">Tasks Overdue</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <div class="bar-chart" id="bar-chart-container">
+              <!-- Bars injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Pie Chart (Dynamic) -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Project Breakdown</h3>
+            <select id="pie-chart-select" class="chart-select">
+              <option value="time">Time Tracked</option>
+              <option value="completed">Tasks Completed</option>
+              <option value="overdue">Tasks Overdue</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <div class="pie-wrapper">
+              <div class="pie-chart" id="pie-chart-element"></div>
+              <div class="pie-legend" id="pie-legend-container">
+                <!-- Legend injected by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: DETAILED LIST                      -->
+    <!-- ========================================== -->
+    <div id="view-details" class="hidden">
+      <div class="card" style="padding: 0;">
+        <div class="table-responsive">
+          <table class="details-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Project</th>
+                <th>Task</th>
+                <th>Time Spent</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="details-table-body">
+              <!-- Rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- UTILITIES ---
+    const formatTime = (milliseconds) => {
+      if (!milliseconds) return '0h 0m';
+      const totalMinutes = Math.floor(milliseconds / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${hours}h ${minutes}m`;
+    };
+
+    const formatDateShort = (dateStr) => {
+      const d = new Date(dateStr + "T00:00:00"); // Append time to avoid timezone shifts
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    // --- TAB LOGIC ---
+    const switchTab = (tabId) => {
+      document.getElementById('view-dashboard').classList.add('hidden');
+      document.getElementById('view-details').classList.add('hidden');
+      document.getElementById('tab-btn-dashboard').classList.remove('active');
+      document.getElementById('tab-btn-details').classList.remove('active');
+
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tabId}`).classList.add('active');
+    };
+
+    // --- GLOBALS ---
+    let latestAppData = null;
+    let latestMetrics = null;
+    const PIE_COLORS = ['#03a9f4', '#b388ff', '#4ade80', '#f472b6', '#fbbf24', '#f87171', '#34d399', '#818cf8', '#a78bfa'];
+
+    // --- INITIALIZE UI ---
+    const todayObjInit = new Date();
+    const lastWeekObjInit = new Date();
+    lastWeekObjInit.setDate(todayObjInit.getDate() - 6);
+    document.getElementById('date-from').value = lastWeekObjInit.toISOString().split('T')[0];
+    document.getElementById('date-to').value = todayObjInit.toISOString().split('T')[0];
+
+    const presetSelect = document.getElementById('date-preset');
+    const customContainer = document.getElementById('custom-date-container');
+
+    presetSelect.addEventListener('change', (e) => {
+      if (e.target.value === 'custom') {
+        customContainer.classList.remove('hidden');
+      } else {
+        customContainer.classList.add('hidden');
+      }
+      processSuperProductivityData(latestAppData);
+    });
+
+    document.getElementById('date-from').addEventListener('change', () => processSuperProductivityData(latestAppData));
+    document.getElementById('date-to').addEventListener('change', () => processSuperProductivityData(latestAppData));
+    document.getElementById('bar-chart-select').addEventListener('change', () => updateBarChart());
+    document.getElementById('pie-chart-select').addEventListener('change', () => updatePieChart());
+
+    // --- RENDER LOGIC ---
+    const updateDashboardUI = (metrics) => {
+      latestMetrics = metrics;
+
+      // 1. Stats
+      document.getElementById('stat-time').innerText = formatTime(metrics.totalTimeSpent);
+      document.getElementById('stat-tasks').innerText = metrics.totalCompleted;
+      document.getElementById('stat-tasks-total').innerText = `/ ${metrics.totalTasks} total`;
+      
+      const progress = metrics.totalTasks > 0 ? (metrics.totalCompleted / metrics.totalTasks) * 100 : 0;
+      document.getElementById('stat-tasks-progress').style.width = `${progress}%`;
+      
+      const overdueEl = document.getElementById('stat-overdue');
+      const overdueLabel = document.getElementById('stat-overdue-label');
+      overdueEl.innerText = metrics.overdueTasks;
+      
+      if (metrics.overdueTasks > 0) {
+        overdueLabel.classList.remove('hidden');
+        overdueEl.classList.add('text-red');
+      } else {
+        overdueLabel.classList.add('hidden');
+        overdueEl.classList.remove('text-red');
+      }
+
+      // 2. Charts (Native)
+      updateBarChart();
+      updatePieChart();
+      
+      // 3. Table
+      renderTable(metrics.tableEntries);
+    };
+
+    const updateBarChart = () => {
+      if (!latestMetrics) return;
+      const type = document.getElementById('bar-chart-select').value;
+      if (type === 'time') {
+        renderGenericBarChart(latestMetrics.weeklyData, 'bar-chart-container', 'var(--sp-primary)', (v) => `${(v / 3600000).toFixed(1)}h`);
+      } else if (type === 'completed') {
+        renderGenericBarChart(latestMetrics.completedPerDay, 'bar-chart-container', 'var(--color-green)', (v) => `${Math.round(v)} tasks`);
+      } else if (type === 'overdue') {
+        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', 'var(--color-red)', (v) => `${Math.round(v)} tasks`);
+      }
+    };
+
+    const updatePieChart = () => {
+      if (!latestMetrics) return;
+      const type = document.getElementById('pie-chart-select').value;
+      if (type === 'time') {
+        renderNativePieChart(latestMetrics.projectData, (v) => `${(v / 3600000).toFixed(1)}h`);
+      } else if (type === 'completed') {
+        renderNativePieChart(latestMetrics.projectCompletedData, (v) => `${Math.round(v)} tasks`);
+      } else if (type === 'overdue') {
+        renderNativePieChart(latestMetrics.projectOverdueData, (v) => `${Math.round(v)} tasks`);
+      }
+    };
+
+    const renderGenericBarChart = (chartData, containerId, color, formatFn) => {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      
+      if (chartData.data.length === 0) return;
+      
+      const maxVal = Math.max(...chartData.data, 1); // Avoid div by 0
+      
+      // Limit to max 30 bars to avoid crushing the UI on Yearly view
+      const maxBars = 30; 
+      let step = Math.ceil(chartData.data.length / maxBars);
+      
+      for (let i = 0; i < chartData.data.length; i += step) {
+        let chunkSum = 0;
+        let chunkCount = 0;
+        for (let j = 0; j < step && i + j < chartData.data.length; j++) {
+          chunkSum += chartData.data[i+j];
+          chunkCount++;
+        }
+        
+        // Use average of chunk or direct if step is 1
+        const val = step === 1 ? chunkSum : chunkSum / chunkCount; 
+        const label = chartData.labels[i].substring(5); // MM-DD
+        const heightPct = (val / maxVal) * 100;
+        const displayVal = formatFn(val);
+
+        const col = document.createElement('div');
+        col.className = 'bar-col';
+        col.innerHTML = `
+          <div class="bar" style="height: ${heightPct}%; background: ${color};" data-val="${displayVal}"></div>
+          <div class="bar-label" title="${chartData.labels[i]}">${label}</div>
+        `;
+        container.appendChild(col);
+      }
+    };
+
+    const renderNativePieChart = (projectData, formatFn) => {
+      const pieEl = document.getElementById('pie-chart-element');
+      const legendEl = document.getElementById('pie-legend-container');
+      legendEl.innerHTML = '';
+      
+      const entries = Object.entries(projectData).sort((a,b) => b[1] - a[1]);
+      const totalVal = entries.reduce((acc, curr) => acc + curr[1], 0);
+
+      if (totalVal === 0 || entries.length === 0) {
+        pieEl.style.background = 'var(--sp-border)';
+        legendEl.innerHTML = '<div class="text-muted text-sm">No data for selected period</div>';
+        return;
+      }
+
+      let gradientStops = [];
+      let currentPercent = 0;
+
+      entries.forEach(([name, val], index) => {
+        const color = PIE_COLORS[index % PIE_COLORS.length];
+        const percent = (val / totalVal) * 100;
+        
+        // CSS Conic Gradient string builder
+        gradientStops.push(`${color} ${currentPercent}% ${currentPercent + percent}%`);
+        currentPercent += percent;
+
+        // Add to Legend
+        legendEl.innerHTML += `
+          <div class="legend-item">
+            <div class="legend-label">
+              <span class="legend-dot" style="background: ${color}"></span>
+              <span title="${name}">${name.length > 20 ? name.substring(0,20)+'...' : name}</span>
+            </div>
+            <div class="legend-val">${formatFn(val)}</div>
+          </div>
+        `;
+      });
+
+      pieEl.style.background = `conic-gradient(${gradientStops.join(', ')})`;
+    };
+
+    const renderTable = (entries) => {
+      const tbody = document.getElementById('details-table-body');
+      
+      if (entries.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--sp-muted); padding: 3rem;">No tracked time found for this date range.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = entries.map(entry => `
+        <tr>
+          <td>${formatDateShort(entry.date)}</td>
+          <td class="project-cell">${entry.projectName}</td>
+          <td class="task-cell">${entry.taskTitle}</td>
+          <td class="time-cell">${formatTime(entry.timeSpent)}</td>
+          <td>
+            ${entry.isDone 
+              ? `<span class="badge badge-green">Done</span>`
+              : `<span class="badge badge-blue">In Progress</span>`
+            }
+          </td>
+        </tr>
+      `).join('');
+    };
+
+    // --- DATA PROCESSING ---
+    const getDatesInRange = (startDate, endDate) => {
+      const dates = [];
+      let currentDate = new Date(startDate);
+      const end = new Date(endDate);
+      while (currentDate <= end) {
+        dates.push(new Date(currentDate).toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      return dates;
+    };
+
+    const processSuperProductivityData = (appData) => {
+      if (!appData) return;
+      latestAppData = appData; 
+      
+      const tasks = Object.values(appData.task?.entities || {});
+      const projects = appData.project?.entities || {};
+      
+      const preset = document.getElementById('date-preset').value;
+      let dateFromStr, dateToStr;
+
+      if (preset === 'custom') {
+        dateFromStr = document.getElementById('date-from').value;
+        dateToStr = document.getElementById('date-to').value;
+        if (!dateFromStr || !dateToStr) return;
+      } else {
+        const endObj = new Date();
+        const startObj = new Date();
+
+        if (preset === 'week') {
+          startObj.setDate(endObj.getDate() - 6); 
+        } else if (preset === 'month') {
+          startObj.setMonth(endObj.getMonth() - 1); 
+        } else if (preset === 'year') {
+          startObj.setFullYear(endObj.getFullYear() - 1); 
+        }
+        
+        dateFromStr = startObj.toISOString().split('T')[0];
+        dateToStr = endObj.toISOString().split('T')[0];
+      }
+      
+      const dateRange = getDatesInRange(dateFromStr, dateToStr);
+      
+      let metrics = {
+        totalTimeSpent: 0,
+        totalCompleted: 0,
+        totalTasks: 0,
+        overdueTasks: 0,
+        weeklyData: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
+        completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
+        overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
+        projectData: {},
+        projectCompletedData: {},
+        projectOverdueData: {},
+        tableEntries: []
+      };
+
+      const now = Date.now();
+
+      tasks.forEach(task => {
+        let taskTimeInRange = 0;
+        const pName = task.projectId && projects[task.projectId] 
+            ? projects[task.projectId].title 
+            : 'Uncategorized';
+
+        if (!task.isDone && task.plannedAt && task.plannedAt < now) {
+          metrics.overdueTasks++;
+          metrics.projectOverdueData[pName] = (metrics.projectOverdueData[pName] || 0) + 1;
+        }
+
+        // Map Date string to End of Day timestamp for historical tracking
+        dateRange.forEach((dateStr, index) => {
+          const dayStart = new Date(dateStr + "T00:00:00").getTime();
+          const dayEnd = dayStart + 86400000 - 1;
+
+          // Total time logic
+          const spentOnDate = task.timeSpentOnDay && task.timeSpentOnDay[dateStr];
+          if (spentOnDate) {
+            metrics.weeklyData.data[index] += spentOnDate;
+            taskTimeInRange += spentOnDate;
+
+            // Populate Table List entry
+            const projectName = task.projectId && projects[task.projectId] 
+              ? projects[task.projectId].title 
+              : 'Uncategorized';
+              
+            metrics.tableEntries.push({
+              date: dateStr,
+              projectName: pName,
+              taskTitle: task.title || 'Untitled Task',
+              timeSpent: spentOnDate,
+              isDone: task.isDone
+            });
+          }
+
+          // Completed per day logic
+          if (task.isDone && task.doneOn && task.doneOn >= dayStart && task.doneOn <= dayEnd) {
+            metrics.completedPerDay.data[index]++;
+            metrics.projectCompletedData[pName] = (metrics.projectCompletedData[pName] || 0) + 1;
+          }
+
+          // Overdue per day logic
+          if (task.plannedAt && task.plannedAt < dayEnd) {
+            // It's overdue if it's not done, OR it was done AFTER this specific day
+            if (!task.isDone || (task.doneOn && task.doneOn > dayEnd)) {
+              metrics.overduePerDay.data[index]++;
+            }
+          }
+        });
+
+        if (taskTimeInRange > 0) {
+          metrics.totalTimeSpent += taskTimeInRange;
+          if (!metrics.projectData[pName]) {
+            metrics.projectData[pName] = 0;
+          }
+          metrics.projectData[pName] += taskTimeInRange;
+        }
+
+        if (task.parentId === null && taskTimeInRange > 0) { 
+          metrics.totalTasks++;
+          if (task.isDone) {
+            metrics.totalCompleted++;
+          }
+        }
+      });
+
+      // Sort table entries descending by date
+      metrics.tableEntries.sort((a, b) => b.date.localeCompare(a.date));
+
+      updateDashboardUI(metrics);
+    };
+
+    // --- SP INTEGRATION ---
+    let isConnectedToSP = false;
+    window.addEventListener('message', (event) => {
+      const data = event.data;
+      if (data && data.type === 'SYNC') {
+        isConnectedToSP = true;
+        processSuperProductivityData(data.payload);
+      }
+    });
+
+    // --- MOCK DATA ---
+    setTimeout(() => {
+      if (!isConnectedToSP) {
+        console.log("No host detected. Loading mock data for preview...");
+        
+        const mockPayload = {
+          project: {
+            entities: {
+              "p1": { id: "p1", title: "Website Redesign" },
+              "p2": { id: "p2", title: "Marketing Campaign" },
+              "p3": { id: "p3", title: "Backend API Server" },
+              "p4": { id: "p4", title: "Mobile App V2" }
+            }
+          },
+          task: {
+            entities: {}
+          }
+        };
+
+        const taskNames = [
+          "Create Figma Mockups", "Draft Email Copy", "Setup Database", "General Admin", 
+          "Review Pull Requests", "Weekly Sync Meeting", "Client Discovery Call", "Fix Navigation Bug", 
+          "Write Unit Tests", "Deploy to Staging", "Update API Documentation", "Optimize Hero Images", 
+          "Research Competitors", "Design App Icon", "Configure CI/CD Pipelines"
+        ];
+        const projectIds = ["p1", "p2", "p3", null, "p3", null, "p2", "p1", "p3", "p4", "p3", "p1", "p2", "p4", "p4"];
+
+        const mockToday = new Date();
+        const mockLastMonth = new Date();
+        mockLastMonth.setDate(mockToday.getDate() - 30);
+        const days = getDatesInRange(mockLastMonth, mockToday);
+
+        // Procedurally generate tasks and time entries
+        taskNames.forEach((title, i) => {
+          const taskId = `task${i+1}`;
+          const isDone = i % 3 === 0; // Every 3rd task is done
+          
+          mockPayload.task.entities[taskId] = {
+            parentId: null,
+            title: title,
+            isDone: isDone,
+            doneOn: isDone ? Date.now() - (i * 86400000) : null,
+            projectId: projectIds[i],
+            timeSpentOnDay: {},
+            plannedAt: !isDone && i % 2 === 0 ? Date.now() - (i * 86400000) : null
+          };
+
+          // Add time entries for the last 14 days to ensure the table overflows
+          for(let j = Math.max(0, days.length - 14); j < days.length; j++) {
+            // Scatter the data pseudo-randomly
+            if ((i + j) % 3 !== 0) { 
+              // Assign between 1 and 4 hours per entry
+              mockPayload.task.entities[taskId].timeSpentOnDay[days[j]] = ((i % 4) + 1) * 3600000; 
+            }
+          }
+        });
+
+        processSuperProductivityData(mockPayload);
+      }
+    }, 1000);
+
+  </script>
+</body>
+</html>
