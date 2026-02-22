@@ -381,6 +381,7 @@
   </div>
 
   <script>
+    console.log("[sp-dashboard] Dashboard script initialized");
     // --- UTILITIES ---
     const formatTime = (milliseconds) => {
       if (!milliseconds) return '0h 0m';
@@ -595,6 +596,7 @@
 
     // --- DATA PROCESSING ---
     const processData = (tasksArr, projectsArr) => {
+      console.log("[sp-dashboard] processData called", { tasks: tasksArr.length, projects: projectsArr.length });
       const preset = document.getElementById('date-preset').value;
       let dateFromStr, dateToStr;
 
@@ -619,6 +621,7 @@
       }
       
       const dateRange = getDatesInRange(dateFromStr, dateToStr);
+      console.log("[sp-dashboard] computed date range", dateFromStr, dateToStr, dateRange);
       
       // Build lookup maps for faster processing
       const projectMap = {};
@@ -641,6 +644,7 @@
       const now = Date.now();
 
       tasksArr.forEach(task => {
+        console.log("[sp-dashboard] processing task", task.id, task.title, "timeSpentOnDay keys", Object.keys(task.timeSpentOnDay || {}));
         let taskTimeInRange = 0;
         const pName = task.projectId && projectMap[task.projectId] 
             ? projectMap[task.projectId] 
@@ -699,6 +703,7 @@
 
       // Sort descending by date
       metrics.tableEntries.sort((a, b) => b.date.localeCompare(a.date));
+      console.log("[sp-dashboard] final metrics", metrics);
       updateDashboardUI(metrics);
     };
 
@@ -711,21 +716,28 @@
 
     // --- SP INTEGRATION / NATIVE IFRAME COMMS ---
     const pullDataFromSP = async () => {
+      console.log("[sp-dashboard] pullDataFromSP invoked, PluginAPI?", !!window.PluginAPI);
       try {
         if (window.PluginAPI) {
           const activeTasks = await window.PluginAPI.getTasks() || [];
+          console.log("[sp-dashboard] received activeTasks count", activeTasks.length);
           const archivedTasks = await window.PluginAPI.getArchivedTasks() || [];
+          console.log("[sp-dashboard] received archivedTasks count", archivedTasks.length);
           cachedTasks = [...activeTasks, ...archivedTasks];
           cachedProjects = await window.PluginAPI.getAllProjects() || [];
+          console.log("[sp-dashboard] received projects count", cachedProjects.length);
           processData(cachedTasks, cachedProjects);
+        } else {
+          console.warn("[sp-dashboard] PluginAPI missing inside pullDataFromSP");
         }
       } catch (err) {
-        console.error("Dashboard failed to fetch SP data:", err);
+        console.error("[sp-dashboard] Dashboard failed to fetch SP data:", err);
       }
     };
 
     // Listen for the light refresh trigger from plugin.js
     window.addEventListener('message', (event) => {
+      console.log("[sp-dashboard] message event received in iframe", event.data);
       if (event.data && event.data.type === 'SP_STATE_CHANGED') {
         pullDataFromSP();
       }
@@ -733,10 +745,11 @@
 
     // Initial Bootstrap & Fallback Data Generation
     setTimeout(() => {
+      console.log("[sp-dashboard] bootstrap timeout fired; PluginAPI exists?", !!window.PluginAPI);
       if (window.PluginAPI) {
         pullDataFromSP();
       } else {
-        console.log("No PluginAPI detected. Loading mock data...");
+        console.log("[sp-dashboard] No PluginAPI detected. Loading mock data...");
         
         // Simulating the exact screenshot payload
         const dates = [

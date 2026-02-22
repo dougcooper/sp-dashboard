@@ -8,18 +8,19 @@
 //   },
 // });
 
-console.log("Date Range Reporter plugin loaded!");
+console.log("[sp-dashboard plugin] Date Range Reporter plugin loaded!");
 
 // We listen to the global Redux ACTION hook.
 // Whenever the user adds a task, tracks time, or changes a project, this fires.
 PluginAPI.registerHook(PluginAPI.Hooks.ACTION, (action) => {
-  
+  console.log("[sp-dashboard plugin] ACTION hook triggered", action.type);
   // Super Productivity renders UI plugins inside sandboxed iframes.
   // We locate our specific iframe and send it a lightweight trigger to refresh its data.
   const iframes = document.querySelectorAll('iframe');
   
   iframes.forEach((iframe) => {
     if (iframe.src && iframe.src.includes('index.html')) {
+      console.log("[sp-dashboard plugin] sending SP_STATE_CHANGED to", iframe.src);
       iframe.contentWindow.postMessage({ 
         type: 'SP_STATE_CHANGED' 
       }, '*');
