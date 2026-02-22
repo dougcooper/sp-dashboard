@@ -1,24 +1,4 @@
 {
-  "id": "date-range-reporter",
-  "name": "Date Range Reporter",
-  "version": "{{VERSION}}",
-  "description": "{{DESCRIPTION}}",
-  "manifestVersion": 1,
-  "minSupVersion": "14.0.0",
-  "author": "Super Productivity Community",
-  "icon": "icon.svg",
-  "iFrame": true,
-  "sidePanel": false,
-  "permissions": [
-    "getTasks",
-    "getArchivedTasks",
-    "showSnack",
-    "persistDataSynced",
-    "loadSyncedData"
-  ]
-}
-
-{
   "id": "sp-dashboard",
   "name": "Super Productivity Dashboard",
   "version": "{{VERSION}}",
