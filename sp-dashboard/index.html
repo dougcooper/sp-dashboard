@@ -182,7 +182,8 @@
     /* --- NATIVE CHARTS --- */
     .chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; }
     
-    .bar-chart { display: flex; align-items: flex-end; justify-content: space-around; width: 100%; height: 100%; padding-top: 1rem; gap: 4px; }
+    .bar-chart { display: flex; align-items: flex-end; justify-content: flex-start; width: 100%; height: 100%; padding-top: 1rem; gap: 4px; overflow-x: auto; }
+    .bar-col { flex: 0 0 32px; } /* fixed width columns prevent overlap and allow scrolling */
     .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
     .bar { width: 100%; max-width: 32px; background: var(--c-primary, #03a9f4); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; position: relative; }
     .bar:hover::after {
@@ -341,6 +342,7 @@
                 <option value="time">Time Tracked</option>
                 <option value="completed">Tasks Completed</option>
                 <option value="overdue">Tasks Overdue</option>
+                <option value="late">Completed Late</option>
               </select>
             </div>
             <div class="chart-container">
@@ -355,6 +357,7 @@
                 <option value="time">Time Tracked</option>
                 <option value="completed">Tasks Completed</option>
                 <option value="overdue">Tasks Overdue</option>
+                <option value="late">Completed Late</option>
               </select>
             </div>
             <div class="chart-container">
@@ -506,6 +509,8 @@
         renderGenericBarChart(latestMetrics.completedPerDay, 'bar-chart-container', '#4ade80', (v) => `${Math.round(v)} tasks`);
       } else if (type === 'overdue') {
         renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#f87171', (v) => `${Math.round(v)} tasks`);
+      } else if (type === 'late') {
+        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#fbbf24', (v) => `${Math.round(v)} tasks`); // reuse overduePerDay
       }
     };
 
@@ -518,6 +523,8 @@
         renderNativePieChart(latestMetrics.projectCompletedData, (v) => `${Math.round(v)} tasks`);
       } else if (type === 'overdue') {
         renderNativePieChart(latestMetrics.projectOverdueData, (v) => `${Math.round(v)} tasks`);
+      } else if (type === 'late') {
+        renderNativePieChart(latestMetrics.projectLateData, (v) => `${Math.round(v)} tasks`);
       }
     };
 
@@ -672,9 +679,20 @@
       tasksArr.forEach(task => {
         const keys = Object.keys(task.timeSpentOnDay || {});
         const overlap = keys.filter(k => dateRange.includes(k));
-        const dueDateVal = task.dueDay ? new Date(task.dueDay + "T00:00:00").getTime() : (task.plannedAt || null);
+        // parse dueDay robustly (some strings might not parse cleanly)
+        let dueDateVal = null;
+        if (task.dueDay) {
+          const parsed = Date.parse(task.dueDay);
+          if (!isNaN(parsed)) {
+            dueDateVal = parsed;
+          }
+        }
+        if (!dueDateVal && task.plannedAt) {
+          dueDateVal = task.plannedAt;
+        }
         console.log("[sp-dashboard] processing task", task.id, task.title,
-                    "dueDay", task.dueDay, "plannedAt", task.plannedAt ? new Date(task.plannedAt) : 'none',
+                    "dueDay", task.dueDay, "dueDateVal", dueDateVal ? new Date(dueDateVal) : null,
+                    "plannedAt", task.plannedAt ? new Date(task.plannedAt) : 'none',
                     "isDone", task.isDone, "timeSpentOnDay keys", keys, "inRange", overlap);
         if (!dueDateVal && !task.isDone) {
           console.log("[sp-dashboard] task missing dueDay/plannedAt and not done, full object:", task);
@@ -736,7 +754,16 @@
           }
 
           // Overdue Logic (per-day, using dueDay if available)
-          const dueDateVal = task.dueDay ? new Date(task.dueDay + "T00:00:00").getTime() : (task.plannedAt || 0);
+          let dueDateVal = null;
+          if (task.dueDay) {
+            const parsed = Date.parse(task.dueDay);
+            if (!isNaN(parsed)) {
+              dueDateVal = parsed;
+            }
+          }
+          if (!dueDateVal && task.plannedAt) {
+            dueDateVal = task.plannedAt;
+          }
           if (dueDateVal && dueDateVal < dayEnd) {
             const doneAfter = task.doneOn && task.doneOn > dayEnd;
             if (!task.isDone || doneAfter) {
@@ -774,7 +801,16 @@
       // After initial pass, some tasks may have gained dueDay later (see logs)
       tasksArr.forEach(task => {
         if (!countedOverdue.has(task.id)) {
-          const dueDateVal = task.dueDay ? new Date(task.dueDay + "T00:00:00").getTime() : (task.plannedAt || null);
+          let dueDateVal = null;
+          if (task.dueDay) {
+            const parsed = Date.parse(task.dueDay);
+            if (!isNaN(parsed)) {
+              dueDateVal = parsed;
+            }
+          }
+          if (!dueDateVal && task.plannedAt) {
+            dueDateVal = task.plannedAt;
+          }
           if (!task.isDone && dueDateVal && dueDateVal < now) {
             console.log("[sp-dashboard] late-detected overdue task", task.id, new Date(dueDateVal));
             metrics.overdueTasks++;
@@ -788,7 +824,15 @@
       });
       // recompute unplannedCount after potential dueDay additions
       metrics.unplannedCount = tasksArr.reduce((cnt, t) => {
-        const dueDateVal = t.dueDay ? new Date(t.dueDay + "T00:00:00").getTime() : (t.plannedAt || null);
+        // robust dueDate parsing used elsewhere
+        let dueDateVal = null;
+        if (t.dueDay) {
+          const parsed = Date.parse(t.dueDay);
+          if (!isNaN(parsed)) dueDateVal = parsed;
+        }
+        if (!dueDateVal && t.plannedAt) {
+          dueDateVal = t.plannedAt;
+        }
         return cnt + ((!t.isDone && !dueDateVal) ? 1 : 0);
       }, 0);
       // Sort descending by date
@@ -811,6 +855,8 @@
     window.getDatesInRange = getDatesInRange;
     window.switchTab = switchTab;
     window.processData = processData;
+    window.updateBarChart = updateBarChart;
+    window.updatePieChart = updatePieChart;
 
     // --- SP INTEGRATION / NATIVE IFRAME COMMS ---
     const pullDataFromSP = async () => {

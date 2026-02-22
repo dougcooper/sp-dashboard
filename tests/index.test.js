@@ -77,6 +77,24 @@ describe('Date Range Reporter UI', () => {
       expect(progressFill.style.width).toBe('50%');
     });
 
+    it('should honor dueDay provided initially (no plannedAt)', () => {
+      const now = Date.now();
+      const dueStr = new Date(now - 86400000).toISOString().split('T')[0];
+      const task = {
+        id: 't-initial',
+        parentId: null,
+        title: 'Initial Overdue',
+        isDone: false,
+        dueDay: dueStr,
+        timeSpentOnDay: {}
+      };
+      window.processData([task], []);
+      expect(document.getElementById('stat-overdue').innerText).toBe('1');
+      // table should include this task despite zero time
+      const row = document.querySelector('#details-table-body tr');
+      expect(row.textContent).toContain('Initial Overdue');
+    });
+
     it('should pick up overdue when dueDay is added later', () => {
       const now = Date.now();
       const task = {
@@ -157,6 +175,37 @@ describe('Date Range Reporter UI', () => {
       presetSelect.value = 'week';
       presetSelect.dispatchEvent(new Event('change'));
       expect(customContainer.classList.contains('hidden')).toBe(true);
+    });
+
+    it('bar and pie charts should render for overdue and late types', () => {
+      // prepare metrics with one overdue task and one late task
+      const now = Date.now();
+      const yesterdayStr = new Date(now - 86400000).toISOString().split('T')[0];
+      const overdueTask = { id:'t1', parentId:null, title:'Foo', isDone:false, dueDay:'2026-02-20', timeSpentOnDay:{'2026-02-20':0} };
+      const lateTask = { id:'t2', parentId:null, title:'Bar', isDone:true, doneOn: now, dueDay: yesterdayStr, timeSpentOnDay:{} };
+      window.processData([overdueTask, lateTask], []);
+      const barSelect = document.getElementById('bar-chart-select');
+      const pieSelect = document.getElementById('pie-chart-select');
+      const barContainer = document.getElementById('bar-chart-container');
+      const pieContainer = document.getElementById('pie-chart-element');
+
+      barSelect.value = 'overdue';
+      window.updateBarChart();
+      expect(barContainer.querySelector('.bar')).not.toBeNull();
+
+      barSelect.value = 'late';
+      window.updateBarChart();
+      expect(barContainer.querySelector('.bar')).not.toBeNull();
+
+      pieSelect.value = 'overdue';
+      window.updatePieChart();
+      // JSDOM may not retain gradient string, but legend items should appear
+      const pieLegend = document.getElementById('pie-legend-container');
+      expect(pieLegend.querySelector('.legend-item')).not.toBeNull();
+
+      pieSelect.value = 'late';
+      window.updatePieChart();
+      expect(pieLegend.querySelector('.legend-item')).not.toBeNull();
     });
   });
 });
