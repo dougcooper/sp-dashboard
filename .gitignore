@@ -1,0 +1,10 @@
+*.zip
+test-plugin.html
+node_modules/
+sp-dashboard/manifest.json
+coverage/
+.vitest/
+*.log
+dist/
+.DS_Store
+build/

@@ -1,0 +1,50 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+    
+    - name: Run tests with coverage
+      run: npm run test:coverage
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      if: success()
+      with:
+        files: ./coverage/coverage-final.json
+        fail_ci_if_error: false
+    
+    - name: Build plugin
+      if: success()
+      run: make build
+    
+    - name: Upload plugin artifact
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sp-dashboard-plugin
+        path: sp-dashboard.zip
+        retention-days: 90

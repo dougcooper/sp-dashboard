@@ -1,0 +1,26 @@
+{
+  "name": "sp-dashboard",
+  "version": "1.0.0",
+  "description": "A visual dashboard plugin providing metrics, charts, and daily summaries of your tasks and tracked time.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build:min": "./scripts/minify.sh sp-dashboard"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.0.4",
+    "@vitest/ui": "^1.0.4",
+    "html-minifier-terser": "^6.1.0",
+    "jsdom": "^23.0.0",
+    "vitest": "^1.0.4"
+  },
+  "keywords": [
+    "super-productivity",
+    "plugin",
+    "dashboard"
+  ],
+  "author": "Super Productivity Community",
+  "license": "MIT"
+}
