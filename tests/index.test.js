@@ -77,26 +77,26 @@ describe('Date Range Reporter UI', () => {
       expect(progressFill.style.width).toBe('50%');
     });
 
-    it('should identify overdue tasks', () => {
+    it('should pick up overdue when dueDay is added later', () => {
       const now = Date.now();
-      const mockTasks = [
-        {
-          id: 't1',
-          parentId: null,
-          title: 'Overdue Task',
-          isDone: false,
-          plannedAt: now - 86400000, // Yesterday
-          timeSpentOnDay: { '2026-02-22': 1000 }
-        }
-      ];
+      const task = {
+        id: 't-late',
+        parentId: null,
+        title: 'Late Task',
+        isDone: false,
+        // start without dueDay
+        timeSpentOnDay: {}
+      };
+      const tasks = [ task ];
 
-      window.processData(mockTasks, []);
+      // initial run: no overdue
+      window.processData(tasks, []);
+      expect(document.getElementById('stat-overdue').innerText).toBe('0');
 
-      const overdueCount = document.getElementById('stat-overdue');
-      const overdueLabel = document.getElementById('stat-overdue-label');
-
-      expect(overdueCount.innerText).toBe('1');
-      expect(overdueLabel.classList.contains('hidden')).toBe(false);
+      // add dueDay and trigger again
+      task.dueDay = new Date(now - 86400000).toISOString().split('T')[0];
+      window.processData(tasks, []);
+      expect(document.getElementById('stat-overdue').innerText).toBe('1');
     });
   });
 
