@@ -165,6 +165,7 @@
     /* Badges */
     .badge { padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
     .badge-red { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); }
+    .badge-yellow { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.2); }
     .badge-done { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); }
     .badge-progress { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.2); }
 
@@ -323,7 +324,7 @@
           <div class="stat-card">
             <div class="stat-header">
               <h3 class="stat-title">Completed Late</h3>
-              <div class="stat-icon" style="background: rgba(248, 113, 113, 0.1); color: #f87171;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4v.01"></path></svg></div>
+              <div class="stat-icon" style="background: rgba(251, 191, 36, 0.1); color: #fbbf24;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4v.01"></path></svg></div>
             </div>
             <div class="stat-value-container">
               <span class="stat-value" id="stat-late">0</span>
@@ -378,11 +379,11 @@
         <table class="details-table">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Project</th>
-              <th>Task</th>
-              <th>Time Spent</th>
-              <th>Status</th>
+              <th data-sort="date">Date</th>
+              <th data-sort="projectName">Project</th>
+              <th data-sort="taskTitle">Task</th>
+              <th data-sort="timeSpent">Time Spent</th>
+              <th data-sort="status">Status</th>
             </tr>
           </thead>
           <tbody id="details-table-body">
@@ -436,6 +437,52 @@
     let cachedTasks = [];
     let cachedProjects = [];
     let latestMetrics = null;
+    let currentSort = { key: 'date', dir: 'desc' }; // sorting state for details table
+
+    // helper to sort table entries by given field/key
+    const sortEntries = (entries, key, dir) => {
+      const cmp = (a, b) => {
+        let av = a[key];
+        let bv = b[key];
+        if (key === 'date') {
+          av = a.date || '';
+          bv = b.date || '';
+        } else if (key === 'timeSpent') {
+          av = a.timeSpent || 0;
+          bv = b.timeSpent || 0;
+        } else if (key === 'status') {
+          const label = e => e.late ? '2' : e.overdue ? '1' : e.isDone ? '3' : '0';
+          av = label(a);
+          bv = label(b);
+        } else {
+          av = (av || '').toString();
+          bv = (bv || '').toString();
+        }
+        if (av < bv) return dir === 'asc' ? -1 : 1;
+        if (av > bv) return dir === 'asc' ? 1 : -1;
+        return 0;
+      };
+      return [...entries].sort(cmp);
+    };
+
+    const attachSortHandlers = () => {
+      document.querySelectorAll('#view-details th[data-sort]').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', () => {
+          const key = th.getAttribute('data-sort');
+          if (currentSort.key === key) {
+            currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+          } else {
+            currentSort.key = key;
+            currentSort.dir = 'asc';
+          }
+          if (latestMetrics) {
+            const sorted = sortEntries(latestMetrics.tableEntries, currentSort.key, currentSort.dir);
+            renderTable(sorted);
+          }
+        });
+      });
+    };
     // Base colors matching the UI kit logic (fallback hexes just in case)
     const PIE_COLORS = ['#03a9f4', '#b388ff', '#4ade80', '#f472b6', '#fbbf24', '#f87171', '#34d399', '#818cf8', '#a78bfa'];
 
@@ -467,6 +514,9 @@
     const updateDashboardUI = (metrics) => {
       latestMetrics = metrics;
 
+      // render table with current sort order
+      const sortedEntries = sortEntries(metrics.tableEntries, currentSort.key, currentSort.dir);
+
       document.getElementById('stat-time').innerText = formatTime(metrics.totalTimeSpent);
       document.getElementById('stat-tasks').innerText = String(metrics.totalCompleted);
       document.getElementById('stat-tasks-total').innerText = `/ ${metrics.totalTasks} total`;
@@ -497,7 +547,7 @@
 
       updateBarChart();
       updatePieChart();
-      renderTable(metrics.tableEntries);
+      renderTable(sortedEntries);
     };
 
     const updateBarChart = () => {
@@ -510,7 +560,7 @@
       } else if (type === 'overdue') {
         renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#f87171', (v) => `${Math.round(v)} tasks`);
       } else if (type === 'late') {
-        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#fbbf24', (v) => `${Math.round(v)} tasks`); // reuse overduePerDay
+        renderGenericBarChart(latestMetrics.latePerDay, 'bar-chart-container', '#fbbf24', (v) => `${Math.round(v)} tasks`);
       }
     };
 
@@ -616,40 +666,37 @@
               ? `<span class="badge badge-done">Done</span>`
               : `<span class="badge badge-progress">In Progress</span>`
             }
+            ${entry.overdue ? `<span class="badge badge-red" style="margin-left:4px;">Overdue</span>` : ''}
+            ${entry.late ? `<span class="badge badge-yellow" style="margin-left:4px;">Late</span>` : ''}
           </td>
         </tr>
       `).join('');
     };
 
-    // --- DATA PROCESSING ---
+    // process tasks/projects into metrics and update UI
     const processData = (tasksArr, projectsArr) => {
-      console.log("[sp-dashboard] processData called", { tasks: tasksArr.length, projects: projectsArr.length });
+      // determine date range from preset/selectors
       const preset = document.getElementById('date-preset').value;
       let dateFromStr, dateToStr;
-
       if (preset === 'custom') {
         dateFromStr = document.getElementById('date-from').value;
         dateToStr = document.getElementById('date-to').value;
-        if (!dateFromStr || !dateToStr) return;
       } else {
         const endObj = new Date();
         const startObj = new Date();
-
         if (preset === 'week') {
-          startObj.setDate(endObj.getDate() - 6); 
+          startObj.setDate(endObj.getDate() - 6);
         } else if (preset === 'month') {
-          startObj.setMonth(endObj.getMonth() - 1); 
+          startObj.setMonth(endObj.getMonth() - 1);
         } else if (preset === 'year') {
-          startObj.setFullYear(endObj.getFullYear() - 1); 
+          startObj.setFullYear(endObj.getFullYear() - 1);
         }
-        
         dateFromStr = startObj.toISOString().split('T')[0];
         dateToStr = endObj.toISOString().split('T')[0];
       }
-      
       const dateRange = getDatesInRange(dateFromStr, dateToStr);
       console.log("[sp-dashboard] computed date range", dateFromStr, dateToStr, dateRange);
-      
+
       // Build lookup maps for faster processing
       const projectMap = {};
       projectsArr.forEach(p => projectMap[p.id] = p.title);
@@ -664,6 +711,7 @@
         weeklyData: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
         completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
         overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
+        latePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
         projectData: {},
         projectCompletedData: {},
         projectOverdueData: {},
@@ -743,7 +791,9 @@
               projectName: pName,
               taskTitle: task.title || 'Untitled Task',
               timeSpent: spentOnDate,
-              isDone: task.isDone
+              isDone: task.isDone,
+              overdue: isOverdue,
+              late: isLate
             });
           }
 
@@ -751,6 +801,9 @@
           if (task.isDone && task.doneOn && task.doneOn >= dayStart && task.doneOn <= dayEnd) {
             metrics.completedPerDay.data[index]++;
             metrics.projectCompletedData[pName] = (metrics.projectCompletedData[pName] || 0) + 1;
+            if (isLate) {
+              metrics.latePerDay.data[index]++;
+            }
           }
 
           // Overdue Logic (per-day, using dueDay if available)
@@ -781,7 +834,9 @@
             projectName: pName,
             taskTitle: `${task.title || 'Untitled Task'} (${badge})`,
             timeSpent: 0,
-            isDone: task.isDone
+            isDone: task.isDone,
+            overdue: isOverdue,
+            late: isLate
           });
         }
 
@@ -847,6 +902,8 @@
       }
       console.log("[sp-dashboard] final metrics", JSON.stringify(metrics, null, 2));
       updateDashboardUI(metrics);
+      // attach sort click handlers after table generated
+      attachSortHandlers();
     };
 
     // expose key utilities for testing (JSDOM environment won't execute script tags normally)
@@ -857,6 +914,7 @@
     window.processData = processData;
     window.updateBarChart = updateBarChart;
     window.updatePieChart = updatePieChart;
+    window.sortEntries = sortEntries;
 
     // --- SP INTEGRATION / NATIVE IFRAME COMMS ---
     const pullDataFromSP = async () => {

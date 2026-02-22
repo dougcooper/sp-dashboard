@@ -177,13 +177,22 @@ describe('Date Range Reporter UI', () => {
       expect(customContainer.classList.contains('hidden')).toBe(true);
     });
 
-    it('bar and pie charts should render for overdue and late types', () => {
+    it('bar and pie charts should render for overdue and late types and details show badges', () => {
       // prepare metrics with one overdue task and one late task
       const now = Date.now();
       const yesterdayStr = new Date(now - 86400000).toISOString().split('T')[0];
       const overdueTask = { id:'t1', parentId:null, title:'Foo', isDone:false, dueDay:'2026-02-20', timeSpentOnDay:{'2026-02-20':0} };
       const lateTask = { id:'t2', parentId:null, title:'Bar', isDone:true, doneOn: now, dueDay: yesterdayStr, timeSpentOnDay:{} };
       window.processData([overdueTask, lateTask], []);
+
+      // verify list badges
+      const rows = document.querySelectorAll('#details-table-body tr');
+      expect(rows.length).toBe(2);
+      // both badges should appear somewhere in the table
+      const text = Array.from(rows).map(r => r.textContent).join(' ');
+      expect(text).toContain('Overdue');
+      expect(text).toContain('Late');
+
       const barSelect = document.getElementById('bar-chart-select');
       const pieSelect = document.getElementById('pie-chart-select');
       const barContainer = document.getElementById('bar-chart-container');
@@ -206,6 +215,23 @@ describe('Date Range Reporter UI', () => {
       pieSelect.value = 'late';
       window.updatePieChart();
       expect(pieLegend.querySelector('.legend-item')).not.toBeNull();
+    });
+
+    it('detail list columns are sortable when headers are clicked', () => {
+      // create two tasks with different dates
+      const taskA = { id:'a', parentId:null, title:'A', isDone:false, dueDay:'2026-01-01', timeSpentOnDay:{'2026-01-01':3600000} };
+      const taskB = { id:'b', parentId:null, title:'B', isDone:false, dueDay:'2026-01-02', timeSpentOnDay:{'2026-01-02':3600000} };
+      window.processData([taskA, taskB], []);
+      // capture initial order of date cells
+      const initial = Array.from(document.querySelectorAll('#details-table-body tr td:first-child')).map(td => td.textContent);
+      expect(initial.length).toBe(2);
+      // click date header to toggle order
+      const dateTh = document.querySelector('#view-details th[data-sort="date"]');
+      dateTh.click();
+      const after = Array.from(document.querySelectorAll('#details-table-body tr td:first-child')).map(td => td.textContent);
+      // the arrays should be reversed
+      expect(after[0]).toBe(initial[1]);
+      expect(after[1]).toBe(initial[0]);
     });
   });
 });
