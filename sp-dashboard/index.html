@@ -319,6 +319,16 @@
             </div>
           </div>
 
+          <div class="stat-card">
+            <div class="stat-header">
+              <h3 class="stat-title">Completed Late</h3>
+              <div class="stat-icon" style="background: rgba(248, 113, 113, 0.1); color: #f87171;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4v.01"></path></svg></div>
+            </div>
+            <div class="stat-value-container">
+              <span class="stat-value" id="stat-late">0</span>
+            </div>
+          </div>
+
         </div>
 
         <!-- Charts Row -->
@@ -464,6 +474,7 @@
       const overdueEl = document.getElementById('stat-overdue');
       const overdueLabel = document.getElementById('stat-overdue-label');
       const overdueNote = document.getElementById('overdue-note');
+      document.getElementById('stat-late').innerText = String(metrics.lateCompleted);
       overdueEl.innerText = String(metrics.overdueTasks);
       
       if (metrics.overdueTasks > 0) {
@@ -641,13 +652,15 @@
         totalCompleted: 0,
         totalTasks: 0,
         overdueTasks: 0,
-        unplannedCount: 0, // tasks without a plannedAt date
+        lateCompleted: 0, // completed after due date
+        unplannedCount: 0, // tasks without a plannedAt or dueDay
         weeklyData: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
         completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
         overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
         projectData: {},
         projectCompletedData: {},
         projectOverdueData: {},
+        projectLateData: {},
         tableEntries: []
       };
 
@@ -675,10 +688,24 @@
         if (!dueDateVal && !task.isDone) {
           metrics.unplannedCount++;
         }
-        // overdue check using dueDateVal < now
-        if (!task.isDone && dueDateVal && dueDateVal < now) {
-          console.log("[sp-dashboard] marking task overdue relative to now", task.id, new Date(dueDateVal));
+        // determine overdue state
+        let isOverdue = false;
+        let isLate = false;
+        if (dueDateVal) {
+          if (!task.isDone && dueDateVal < now) {
+            isOverdue = true;
+          } else if (task.isDone && task.doneOn && task.doneOn > dueDateVal) {
+            isOverdue = true;
+            isLate = true;
+          }
+        }
+        if (isOverdue) {
+          console.log("[sp-dashboard] marking task overdue", task.id, dueDateVal ? new Date(dueDateVal) : null, "doneOn", task.doneOn ? new Date(task.doneOn) : null);
           metrics.overdueTasks++;
+          if (isLate) {
+            metrics.lateCompleted++;
+            metrics.projectLateData[pName] = (metrics.projectLateData[pName] || 0) + 1;
+          }
           countedOverdue.add(task.id);
           metrics.projectOverdueData[pName] = (metrics.projectOverdueData[pName] || 0) + 1;
         }
@@ -711,12 +738,25 @@
           // Overdue Logic (per-day, using dueDay if available)
           const dueDateVal = task.dueDay ? new Date(task.dueDay + "T00:00:00").getTime() : (task.plannedAt || 0);
           if (dueDateVal && dueDateVal < dayEnd) {
-            if (!task.isDone || (task.doneOn && task.doneOn > dayEnd)) {
+            const doneAfter = task.doneOn && task.doneOn > dayEnd;
+            if (!task.isDone || doneAfter) {
               metrics.overduePerDay.data[index]++;
-              console.log("[sp-dashboard] overduePerDay increment for task", task.id, "on", dateStr);
+              console.log("[sp-dashboard] overduePerDay increment for task", task.id, "on", dateStr, "doneAfter", doneAfter);
             }
           }
         });
+        
+        // add a row for overdue or late tasks that had no time entries
+        if (taskTimeInRange === 0 && (isOverdue || isLate)) {
+          const badge = isLate ? 'Late' : 'Overdue';
+          metrics.tableEntries.push({
+            date: dueDateVal ? new Date(dueDateVal).toISOString().split('T')[0] : '',
+            projectName: pName,
+            taskTitle: `${task.title || 'Untitled Task'} (${badge})`,
+            timeSpent: 0,
+            isDone: task.isDone
+          });
+        }
 
         // Tally Project Time and Total Tasks if active in window
         if (taskTimeInRange > 0) {

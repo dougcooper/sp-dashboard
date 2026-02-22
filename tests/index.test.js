@@ -98,6 +98,26 @@ describe('Date Range Reporter UI', () => {
       window.processData(tasks, []);
       expect(document.getElementById('stat-overdue').innerText).toBe('1');
     });
+
+    it('should count a task done after its due day as overdue and late', () => {
+      const now = Date.now();
+      const due = new Date(now - 86400000); // yesterday
+      const task = {
+        id: 't-done-late',
+        parentId: null,
+        title: 'Done Late',
+        isDone: true,
+        doneOn: now,
+        dueDay: due.toISOString().split('T')[0],
+        timeSpentOnDay: {}
+      };
+      window.processData([task], []);
+      expect(document.getElementById('stat-overdue').innerText).toBe('1');
+      expect(document.getElementById('stat-late').innerText).toBe('1');
+      // table should include the task despite zero time
+      const row = document.querySelector('#details-table-body tr');
+      expect(row.textContent).toContain('Done Late');
+    });
   });
 
   describe('Navigation & Interactivity', () => {
