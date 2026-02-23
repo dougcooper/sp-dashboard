@@ -1,11 +1,11 @@
 {
   "id": "sp-dashboard",
-  "name": "Super Productivity Dashboard",
+  "name": "Dashboard",
   "version": "{{VERSION}}",
   "description": "{{DESCRIPTION}}",
   "manifestVersion": 1,
   "minSupVersion": "14.0.0",
-  "author": "Super Productivity Community",
+  "author": "Douglas Cooper",
   "icon": "icon.svg",
   "iFrame": true,
   "sidePanel": false,
