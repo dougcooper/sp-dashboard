@@ -1,4 +1,4 @@
-# Date Range Reporter Plugin for Super Productivity
+# Dashboard Plugin for Super Productivity
 
 A lightweight dashboard plugin for [Super Productivity](https://super-productivity.com) that visualizes time tracked, completed tasks, overdue items, and project breakdowns within a user‑defined date range. It ships as a self-contained HTML/JavaScript widget with no external dependencies and is styled to support light/dark themes.
 
