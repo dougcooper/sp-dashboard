@@ -13,9 +13,15 @@ A lightweight dashboard plugin for [Super Productivity](https://super-productivi
 
 ## 🖼️ Preview
 
-Below is a screenshot of the dashboard rendered outside of the host app (mock data is used when `PluginAPI` is not available):
+Below are screenshots of the plugin rendered outside of the host app (mock data is used when `PluginAPI` is not available):
 
-![Dashboard Screenshot](assets/screenshot.png)
+![Dashboard View](assets/dashboard.png)
+*Dashboard with key metrics and charts.*
+
+![Detailed List View](assets/detailed_list.png)
+*Detailed list of individual time entries and task statuses.*
+
+*(Images are regenerated via the screenshot utility when the UI changes.)*
 
 - Native charts rendered with vanilla JS and CSS (no charting libraries)
 - Responsive layout and theming consistent with Super Productivity
@@ -80,13 +86,12 @@ npm run test:coverage # generate coverage report
 make test
 ```
 
-### Updating the screenshot
+### Updating the screenshots
 
-The screenshot is stored under `assets/screenshot.png` and tracked with Git LFS.
-You can regenerate it with:
+The screenshots are stored under `assets/` and are tracked with Git LFS. You can regenerate them with:
 
 ```bash
-npm run screenshot   # uses puppeteer
+npm run screenshot   # uses puppeteer, outputs images
 # or
 make screenshot
 ```
