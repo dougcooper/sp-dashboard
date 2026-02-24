@@ -12,6 +12,8 @@
   "permissions": [
     "getTasks",
     "getArchivedTasks",
-    "getAllProjects"
+    "getAllProjects",
+    "persistDataSynced",
+    "loadSyncedData"
   ]
 }
