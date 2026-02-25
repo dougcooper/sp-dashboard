@@ -77,7 +77,7 @@ describe('Date Range Reporter UI', () => {
       expect(progressFill.style.width).toBe('50%');
     });
 
-    it('should honor dueDay provided initially (no plannedAt)', () => {
+    it('should honor dueDay provided initially', () => {
       const now = Date.now();
       const dueStr = new Date(now - 86400000).toISOString().split('T')[0];
       const task = {
@@ -111,10 +111,33 @@ describe('Date Range Reporter UI', () => {
       window.processData(tasks, []);
       expect(document.getElementById('stat-overdue').innerText).toBe('0');
 
-      // add dueDay and trigger again
+      // add dueDay yesterday and trigger again
       task.dueDay = new Date(now - 86400000).toISOString().split('T')[0];
       window.processData(tasks, []);
       expect(document.getElementById('stat-overdue').innerText).toBe('1');
+    });
+
+    it('should not mark a task overdue/late if dueDay is added on the same day after completion', () => {
+      const now = Date.now();
+      const task = {
+        id: 't-add-today',
+        parentId: null,
+        title: 'Added Today',
+        isDone: true,
+        doneOn: now,
+        timeSpentOnDay: {}
+      };
+      const tasks = [ task ];
+      // initial run: no dueDay -> not overdue
+      window.processData(tasks, []);
+      expect(document.getElementById('stat-overdue').innerText).toBe('0');
+      expect(document.getElementById('stat-late').innerText).toBe('0');
+
+      // now add dueDay equal to today
+      task.dueDay = new Date(now).toISOString().split('T')[0];
+      window.processData(tasks, []);
+      expect(document.getElementById('stat-overdue').innerText).toBe('0');
+      expect(document.getElementById('stat-late').innerText).toBe('0');
     });
 
     it('should count a task done after its due day as overdue and late', () => {
@@ -135,6 +158,90 @@ describe('Date Range Reporter UI', () => {
       // table should include the task despite zero time
       const row = document.querySelector('#details-table-body tr');
       expect(row.textContent).toContain('Done Late');
+    });
+
+    // new tests covering dueDay/empy status
+    it('should handle a task without dueDay by not marking it overdue', () => {
+      const now = Date.now();
+      const task = {
+        id: 't-no-due',
+        parentId: null,
+        title: 'No Due Date',
+        isDone: false,
+        timeSpentOnDay: {}
+      };
+      window.processData([task], []);
+      expect(document.getElementById('stat-overdue').innerText).toBe('0');
+      // task has no time entries so it shouldn't contribute to completed/tasks stats
+      expect(document.getElementById('stat-tasks').innerText).toBe('0');
+    });
+
+    it('should not mark a task due today as late if completed same day', () => {
+      const now = Date.now();
+      const todayStr = new Date(now).toISOString().split('T')[0];
+      const task = {
+        id: 't-due-today',
+        parentId: null,
+        title: 'Due Today',
+        isDone: true,
+        doneOn: now,
+        dueDay: todayStr,
+        timeSpentOnDay: {}
+      };
+      window.processData([task], []);
+      expect(document.getElementById('stat-late').innerText).toBe('0');
+      // row should appear in detail list despite zero time
+      const row = document.querySelector('#details-table-body tr');
+      expect(row.textContent).toContain('Due Today');
+      // ensure totals include the completed task
+      expect(document.getElementById('stat-tasks').innerText).toBe('1');
+      expect(document.getElementById('stat-tasks-total').innerText).toContain('1 total');
+    });
+
+    it('should count a completed subtask in total tasks', () => {
+      const now = Date.now();
+      const sub = {
+        id: 'sub1',
+        parentId: 'parent',
+        title: 'subtask done',
+        isDone: true,
+        doneOn: now,
+        dueDay: new Date(now).toISOString().split('T')[0],
+        timeSpentOnDay: {}
+      };
+      window.processData([sub], []);
+      expect(document.getElementById('stat-tasks').innerText).toBe('1');
+      expect(document.getElementById('stat-tasks-total').innerText).toContain('1 total');
+    });
+
+    it('should deduplicate tasks that appear in both active and archived lists', () => {
+      const now = Date.now();
+      const doneTask = {
+        id: 'task1',
+        parentId: null,
+        title: 'Done Task',
+        isDone: true,
+        doneOn: now,
+        dueDay: new Date(now).toISOString().split('T')[0],
+        timeSpentOnDay: {}
+      };
+      // Simulate what happens when pullDataFromSP combines activeTasks and archivedTasks
+      // The same task appears in both lists (which can happen with completed tasks)
+      const activeTasks = [doneTask];
+      const archivedTasks = [doneTask];
+      
+      // Deduplicate using Map (same logic as in pullDataFromSP)
+      const taskMap = new Map();
+      archivedTasks.forEach(task => taskMap.set(task.id, task));
+      activeTasks.forEach(task => taskMap.set(task.id, task));
+      const deduplicatedTasks = Array.from(taskMap.values());
+      
+      // Should have only 1 unique task, not 2
+      expect(deduplicatedTasks.length).toBe(1);
+      
+      // Process the deduplicated list and verify count is 1, not 2
+      window.processData(deduplicatedTasks, []);
+      expect(document.getElementById('stat-tasks').innerText).toBe('1');
     });
   });
 

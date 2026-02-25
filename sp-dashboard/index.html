@@ -344,7 +344,7 @@
               <h3 class="card-title">Daily Trends</h3>
               <select id="bar-chart-select" class="chart-select">
                 <option value="time">Time Tracked</option>
-                <option value="completed">Tasks Completed</option>
+                <option value="completed" selected>Tasks Completed</option>
                 <option value="overdue">Tasks Overdue</option>
                 <option value="late">Completed Late</option>
               </select>
@@ -359,7 +359,7 @@
               <h3 class="card-title">Project Breakdown</h3>
               <select id="pie-chart-select" class="chart-select">
                 <option value="time">Time Tracked</option>
-                <option value="completed">Tasks Completed</option>
+                <option value="completed" selected>Tasks Completed</option>
                 <option value="overdue">Tasks Overdue</option>
                 <option value="late">Completed Late</option>
               </select>
@@ -692,6 +692,20 @@
       `).join('');
     };
 
+    // helper for normalizing a task's dueDay to day boundaries (UTC)
+    const getDueBounds = (task) => {
+      let dueStart = null;
+      if (task.dueDay) {
+        // parse original YYYY-MM-DD string – Date.parse yields UTC midnight
+        const parsed = Date.parse(task.dueDay);
+        if (!isNaN(parsed)) {
+          dueStart = parsed; // no timezone shift
+        }
+      }
+      const dueEnd = dueStart !== null ? dueStart + 86400000 - 1 : null;
+      return { dueStart, dueEnd };
+    };
+
     // process tasks/projects into metrics and update UI
     const processData = (tasksArr, projectsArr) => {
       // determine date range from preset/selectors
@@ -726,7 +740,7 @@
         totalTasks: 0,
         overdueTasks: 0,
         lateCompleted: 0, // completed after due date
-        unplannedCount: 0, // tasks without a plannedAt or dueDay
+        unplannedCount: 0, // tasks without a dueDay
         weeklyData: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
         completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
         overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
@@ -746,46 +760,40 @@
       tasksArr.forEach(task => {
         const keys = Object.keys(task.timeSpentOnDay || {});
         const overlap = keys.filter(k => dateRange.includes(k));
-        // parse dueDay robustly (some strings might not parse cleanly)
-        let dueDateVal = null;
-        if (task.dueDay) {
-          const parsed = Date.parse(task.dueDay);
-          if (!isNaN(parsed)) {
-            dueDateVal = parsed;
-          }
+        // compute normalized due bounds (start of day / end of day)
+        const { dueStart, dueEnd } = getDueBounds(task);
+        if (!dueStart && !task.isDone) {
+          console.log("[sp-dashboard] task missing dueDay and not done, full object:", task);
         }
-        if (!dueDateVal && task.plannedAt) {
-          dueDateVal = task.plannedAt;
-        }
+        // diagnostic info
         console.log("[sp-dashboard] processing task", task.id, task.title,
-                    "dueDay", task.dueDay, "dueDateVal", dueDateVal ? new Date(dueDateVal) : null,
-                    "plannedAt", task.plannedAt ? new Date(task.plannedAt) : 'none',
-                    "isDone", task.isDone, "timeSpentOnDay keys", keys, "inRange", overlap);
-        if (!dueDateVal && !task.isDone) {
-          console.log("[sp-dashboard] task missing dueDay/plannedAt and not done, full object:", task);
-        }
+                    "dueDay", task.dueDay,
+                    "dueStartUTC", dueStart !== null ? new Date(dueStart).toISOString() : null,
+                    "dueEndUTC", dueEnd !== null ? new Date(dueEnd).toISOString() : null,
+                    "nowUTC", new Date(now).toISOString(),
+                    "isDone", task.isDone, "doneOnUTC", task.doneOn ? new Date(task.doneOn).toISOString() : null,
+                    "timeSpentOnDay keys", keys, "inRange", overlap);
         let taskTimeInRange = 0;
         const pName = task.projectId && projectMap[task.projectId] 
             ? projectMap[task.projectId] 
             : 'Uncategorized';
 
-        // count unplanned only if neither dueDay nor plannedAt exists
-        if (!dueDateVal && !task.isDone) {
+        // count unplanned only if dueDay is missing
+        if (!dueStart && !task.isDone) {
           metrics.unplannedCount++;
         }
-        // determine overdue state
+        // determine overdue state using day-end comparison
         let isOverdue = false;
         let isLate = false;
-        if (dueDateVal) {
-          if (!task.isDone && dueDateVal < now) {
+        if (dueStart !== null) {
+          if (!task.isDone && now > dueEnd) {
             isOverdue = true;
-          } else if (task.isDone && task.doneOn && task.doneOn > dueDateVal) {
+          } else if (task.isDone && task.doneOn && task.doneOn > dueEnd) {
             isOverdue = true;
             isLate = true;
           }
         }
         if (isOverdue) {
-          console.log("[sp-dashboard] marking task overdue", task.id, dueDateVal ? new Date(dueDateVal) : null, "doneOn", task.doneOn ? new Date(task.doneOn) : null);
           metrics.overdueTasks++;
           if (isLate) {
             metrics.lateCompleted++;
@@ -825,31 +833,37 @@
             }
           }
 
-          // Overdue Logic (per-day, using dueDay if available)
-          let dueDateVal = null;
-          if (task.dueDay) {
-            const parsed = Date.parse(task.dueDay);
-            if (!isNaN(parsed)) {
-              dueDateVal = parsed;
-            }
-          }
-          if (!dueDateVal && task.plannedAt) {
-            dueDateVal = task.plannedAt;
-          }
-          if (dueDateVal && dueDateVal < dayEnd) {
+          // Overdue Logic (per-day, using normalized due bounds)
+          if (dueStart !== null && dueEnd < dayEnd) {
             const doneAfter = task.doneOn && task.doneOn > dayEnd;
             if (!task.isDone || doneAfter) {
               metrics.overduePerDay.data[index]++;
-              console.log("[sp-dashboard] overduePerDay increment for task", task.id, "on", dateStr, "doneAfter", doneAfter);
             }
           }
         });
         
+        // if completed in window with no time, add entry (but skip if we'll show an overdue/late badge)
+        if (taskTimeInRange === 0 && task.isDone && task.doneOn) {
+          const doneDate = new Date(task.doneOn).toISOString().split('T')[0];
+          if (dateRange.includes(doneDate) && !(isOverdue || isLate)) {
+            metrics.tableEntries.push({
+              date: doneDate,
+              projectName: pName,
+              taskTitle: task.title || 'Untitled Task',
+              timeSpent: 0,
+              isDone: task.isDone,
+              overdue: isOverdue,
+              late: isLate
+            });
+          }
+        }
+        
         // add a row for overdue or late tasks that had no time entries
         if (taskTimeInRange === 0 && (isOverdue || isLate)) {
           const badge = isLate ? 'Late' : 'Overdue';
+          const dateStr = dueStart ? new Date(dueStart).toISOString().split('T')[0] : '';
           metrics.tableEntries.push({
-            date: dueDateVal ? new Date(dueDateVal).toISOString().split('T')[0] : '',
+            date: dateStr,
             projectName: pName,
             taskTitle: `${task.title || 'Untitled Task'} (${badge})`,
             timeSpent: 0,
@@ -866,27 +880,22 @@
           metrics.projectData[pName] += taskTimeInRange;
         }
 
-        if (task.parentId === null && taskTimeInRange > 0) { 
+        // count tasks that had activity OR were completed (in range)
+        const taskCompletedInRange = task.isDone && task.doneOn && dateRange.includes(new Date(task.doneOn).toISOString().split('T')[0]);
+        if (taskTimeInRange > 0 || taskCompletedInRange) {
           metrics.totalTasks++;
-          if (task.isDone) metrics.totalCompleted++;
+          if (taskCompletedInRange) {
+            metrics.totalCompleted++;
+            console.log("[sp-dashboard] incrementing totalCompleted for", task.id, task.title, "- now at", metrics.totalCompleted);
+          }
         }
       });
 
       // After initial pass, some tasks may have gained dueDay later (see logs)
       tasksArr.forEach(task => {
         if (!countedOverdue.has(task.id)) {
-          let dueDateVal = null;
-          if (task.dueDay) {
-            const parsed = Date.parse(task.dueDay);
-            if (!isNaN(parsed)) {
-              dueDateVal = parsed;
-            }
-          }
-          if (!dueDateVal && task.plannedAt) {
-            dueDateVal = task.plannedAt;
-          }
-          if (!task.isDone && dueDateVal && dueDateVal < now) {
-            console.log("[sp-dashboard] late-detected overdue task", task.id, new Date(dueDateVal));
+          const { dueStart, dueEnd } = getDueBounds(task);
+          if (!task.isDone && dueStart !== null && now > dueEnd) {
             metrics.overdueTasks++;
             const pName = task.projectId && projectMap[task.projectId]
                         ? projectMap[task.projectId]
@@ -898,28 +907,30 @@
       });
       // recompute unplannedCount after potential dueDay additions
       metrics.unplannedCount = tasksArr.reduce((cnt, t) => {
-        // robust dueDate parsing used elsewhere
-        let dueDateVal = null;
-        if (t.dueDay) {
-          const parsed = Date.parse(t.dueDay);
-          if (!isNaN(parsed)) dueDateVal = parsed;
-        }
-        if (!dueDateVal && t.plannedAt) {
-          dueDateVal = t.plannedAt;
-        }
-        return cnt + ((!t.isDone && !dueDateVal) ? 1 : 0);
+        const { dueStart } = getDueBounds(t);
+        return cnt + ((!t.isDone && !dueStart) ? 1 : 0);
       }, 0);
+      
+      // Diagnostic: log all done tasks and final tally
+      const doneTasks = tasksArr.filter(t => t.isDone);
+      const doneWithoutTimestamp = doneTasks.filter(t => !t.doneOn);
+      console.log("[sp-dashboard] FINAL METRICS: totalCompleted=", metrics.totalCompleted, "totalTasks=", metrics.totalTasks);
+      console.log("[sp-dashboard] Done tasks in array (count=" + doneTasks.length + "):", doneTasks.map(t => ({ id: t.id, title: t.title, doneOn: t.doneOn })));
+      if (doneWithoutTimestamp.length > 0) {
+        console.warn("[sp-dashboard] WARNING: done tasks missing doneOn timestamp:", doneWithoutTimestamp.map(t => ({ id: t.id, title: t.title })));
+      }
+      
       // Sort descending by date
       metrics.tableEntries.sort((a, b) => b.date.localeCompare(a.date));
       // report any overdue tasks that had no time entries (might explain zero stats)
       const overdueNoTime = tasksArr.filter(t => {
         const keys = Object.keys(t.timeSpentOnDay || {});
-        return (!t.isDone && t.plannedAt && t.plannedAt < rangeEndTime && keys.length === 0);
+        const { dueStart, dueEnd } = getDueBounds(t);
+        return (!t.isDone && dueStart !== null && dueEnd < rangeEndTime && keys.length === 0);
       }).map(t => t.id);
       if (overdueNoTime.length) {
         console.log("[sp-dashboard] overdue tasks with no time entries", overdueNoTime);
       }
-      console.log("[sp-dashboard] final metrics", JSON.stringify(metrics, null, 2));
       updateDashboardUI(metrics);
       // attach sort click handlers after table generated
       attachSortHandlers();
@@ -942,9 +953,37 @@
         if (window.PluginAPI) {
           const activeTasks = await window.PluginAPI.getTasks() || [];
           console.log("[sp-dashboard] received activeTasks count", activeTasks.length);
+          const activeTasksDone = activeTasks.filter(t => t.isDone);
+          console.log("[sp-dashboard] activeTasks done:", JSON.stringify(activeTasksDone.map(t => ({ id: t.id, title: t.title, doneOn: t.doneOn })), null, 2));
+          
           const archivedTasks = await window.PluginAPI.getArchivedTasks() || [];
           console.log("[sp-dashboard] received archivedTasks count", archivedTasks.length);
-          cachedTasks = [...activeTasks, ...archivedTasks];
+          const archivedTasksDone = archivedTasks.filter(t => t.isDone);
+          console.log("[sp-dashboard] archivedTasks done:", JSON.stringify(archivedTasksDone.map(t => ({ id: t.id, title: t.title, doneOn: t.doneOn })), null, 2));
+          
+          // Deduplicate tasks: use Map to ensure each task ID appears only once
+          // Active tasks take precedence over archived (appear later in spread, so overwrite)
+          const taskMap = new Map();
+          const duplicateIds = new Set();
+          archivedTasks.forEach(task => {
+            if (taskMap.has(task.id)) {
+              duplicateIds.add(task.id);
+            }
+            taskMap.set(task.id, task);
+          });
+          activeTasks.forEach(task => {
+            if (taskMap.has(task.id)) {
+              duplicateIds.add(task.id);
+            }
+            taskMap.set(task.id, task);
+          });
+          cachedTasks = Array.from(taskMap.values());
+          console.log("[sp-dashboard] after deduplication, unique tasks count", cachedTasks.length);
+          if (duplicateIds.size > 0) {
+            console.log("[sp-dashboard] duplicate task IDs found:", Array.from(duplicateIds));
+          }
+          const finalDoneCount = cachedTasks.filter(t => t.isDone).length;
+          console.log("[sp-dashboard] final cachedTasks done count:", finalDoneCount);
           cachedProjects = await window.PluginAPI.getAllProjects() || [];
           console.log("[sp-dashboard] received projects count", cachedProjects.length);
           processData(cachedTasks, cachedProjects);
@@ -958,7 +997,8 @@
 
     // Listen for the light refresh trigger from plugin.js
     window.addEventListener('message', (event) => {
-      console.log("[sp-dashboard] message event received in iframe", event.data);
+      console.log("[sp-dashboard] message event received in iframe");
+      console.log(event.data)
       if (event.data && event.data.type === 'SP_STATE_CHANGED') {
         pullDataFromSP();
       }
@@ -1000,7 +1040,7 @@
           },
           {
             id: "t4", parentId: null, title: "Setup Database", isDone: false, projectId: "p1",
-            timeSpentOnDay: { [dates[3]]: 10800000 /* 3h */ }, plannedAt: new Date('2026-02-18T10:00Z').getTime() // Overdue
+            timeSpentOnDay: { [dates[3]]: 10800000 /* 3h */ }, dueDay: "2026-02-18" // Overdue
           }
         ];
 
