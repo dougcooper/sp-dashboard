@@ -920,9 +920,10 @@
           metrics.projectData[pName] += taskTimeInRange;
         }
 
-        // count tasks that had activity OR were completed (in range)
+        // count tasks that had activity OR were completed OR are due (in range)
         const taskCompletedInRange = task.isDone && task.doneOn && dateRange.includes(new Date(task.doneOn).toISOString().split('T')[0]);
-        if (taskTimeInRange > 0 || taskCompletedInRange) {
+        const taskDueInRange = task.dueDay && dateRange.includes(task.dueDay);
+        if (taskTimeInRange > 0 || taskCompletedInRange || taskDueInRange) {
           metrics.totalTasks++;
           if (taskCompletedInRange) {
             metrics.totalCompleted++;

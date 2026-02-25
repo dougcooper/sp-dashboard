@@ -214,6 +214,23 @@ describe('Date Range Reporter UI', () => {
       expect(document.getElementById('stat-tasks-total').innerText).toContain('1 total');
     });
 
+    it('should count tasks due today in totalTasks denominator even with no time logged', () => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const taskDueToday = {
+        id: 't-due-no-time',
+        parentId: null,
+        title: 'Due Today No Time',
+        isDone: false,
+        dueDay: todayStr,
+        timeSpentOnDay: {}
+      };
+      window.processData([taskDueToday], []);
+      // Task is due today so it should appear in the denominator
+      expect(document.getElementById('stat-tasks-total').innerText).toContain('1 total');
+      // Not completed, so numerator stays 0
+      expect(document.getElementById('stat-tasks').innerText).toBe('0');
+    });
+
     it('should deduplicate tasks that appear in both active and archived lists', () => {
       const now = Date.now();
       const doneTask = {
