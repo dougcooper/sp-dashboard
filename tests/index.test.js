@@ -284,6 +284,18 @@ describe('Date Range Reporter UI', () => {
       expect(customContainer.classList.contains('hidden')).toBe(true);
     });
 
+    it('today preset should produce a single-day date range', () => {
+      const presetSelect = document.getElementById('date-preset');
+      presetSelect.value = 'today';
+      presetSelect.dispatchEvent(new Event('change'));
+
+      window.processData([], []);
+
+      // The bar chart should contain exactly one bar column (one day)
+      const barContainer = document.getElementById('bar-chart-container');
+      expect(barContainer.querySelectorAll('.bar-col').length).toBe(1);
+    });
+
     it('bar and pie charts should render for overdue and late types and details show badges', () => {
       // prepare metrics with one overdue task and one late task
       const now = Date.now();
