@@ -190,11 +190,15 @@
     .bar-col { flex: 0 0 32px; } /* fixed width columns prevent overlap and allow scrolling */
     .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
     .bar { width: 100%; max-width: 32px; background: var(--c-primary, #03a9f4); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; position: relative; }
-    .bar:hover::after {
-      content: attr(data-val); position: absolute; top: -25px; left: 50%; transform: translateX(-50%);
-      background: var(--card-bg, #1e1e1e); border: 1px solid var(--divider-color, #333); padding: 2px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; z-index: 10;
-    }
     .bar-label { font-size: 0.7rem; color: var(--text-color-muted, #9e9e9e); margin-top: 0.5rem; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+
+    /* Bar chart tooltip positioned at pointer */
+    .bar-tooltip {
+      position: fixed; pointer-events: none; background: var(--card-bg, #1e1e1e); border: 1px solid var(--divider-color, #333);
+      padding: 4px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; z-index: 1000; display: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .bar-tooltip.visible { display: block; }
 
     .pie-wrapper { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 2rem; }
     .pie-chart {
@@ -398,6 +402,9 @@
     </div>
   </div>
 
+  <!-- Bar chart tooltip positioned at cursor -->
+  <div class="bar-tooltip" id="bar-tooltip"></div>
+
   <script>
     console.log("[sp-dashboard] Dashboard script initialized");
     // --- UTILITIES ---
@@ -535,6 +542,10 @@
       document.getElementById('stat-tasks').innerText = String(metrics.totalCompleted);
       document.getElementById('stat-tasks-total').innerText = `/ ${metrics.totalTasks} total`;
       
+      // Progress: completion rate of active tasks in the date range
+      // totalCompleted = unique tasks completed
+      // totalTasks = unique tasks with either time logged OR completed (note: table shows entries per-day,
+      //              so one task appearing on multiple days counts as 1 in the denominator)
       const progress = metrics.totalTasks > 0 ? (metrics.totalCompleted / metrics.totalTasks) * 100 : 0;
       document.getElementById('stat-tasks-progress').style.width = `${progress}%`;
       
@@ -627,6 +638,31 @@
         `;
         container.appendChild(col);
       }
+      
+      // Setup tooltip listeners for bars
+      setupBarTooltip();
+    };
+
+    const setupBarTooltip = () => {
+      const tooltip = document.getElementById('bar-tooltip');
+      const bars = document.querySelectorAll('.bar-chart .bar');
+      
+      bars.forEach(bar => {
+        bar.addEventListener('mouseenter', (e) => {
+          tooltip.textContent = bar.getAttribute('data-val');
+          tooltip.classList.add('visible');
+        });
+        
+        bar.addEventListener('mousemove', (e) => {
+          // Position tooltip at cursor with small offset
+          tooltip.style.left = (e.clientX + 8) + 'px';
+          tooltip.style.top = (e.clientY - 12) + 'px';
+        });
+        
+        bar.addEventListener('mouseleave', () => {
+          tooltip.classList.remove('visible');
+        });
+      });
     };
 
     const renderNativePieChart = (projectData, formatFn) => {
@@ -1041,6 +1077,11 @@
           {
             id: "t4", parentId: null, title: "Setup Database", isDone: false, projectId: "p1",
             timeSpentOnDay: { [dates[3]]: 10800000 /* 3h */ }, dueDay: "2026-02-18" // Overdue
+          },
+          {
+            id: "t5", parentId: null, title: "Write Documentation", isDone: false, projectId: "p1",
+            timeSpentOnDay: {}, // No time logged in this period – not included in denominator
+            dueDay: "2026-02-28" // Future due date
           }
         ];
 
