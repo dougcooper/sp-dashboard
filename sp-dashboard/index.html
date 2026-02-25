@@ -717,12 +717,15 @@
           <td style="font-weight: 500;">${entry.taskTitle}</td>
           <td class="time-cell">${formatTime(entry.timeSpent)}</td>
           <td>
-            ${entry.isDone 
-              ? `<span class="badge badge-done">Done</span>`
-              : `<span class="badge badge-progress">In Progress</span>`
+            ${
+              entry.late 
+                ? `<span class="badge badge-yellow">Late</span>`
+                : entry.overdue
+                ? `<span class="badge badge-red">Overdue</span>`
+                : entry.isDone 
+                ? `<span class="badge badge-done">Done</span>`
+                : `<span class="badge badge-progress">In Progress</span>`
             }
-            ${entry.overdue ? `<span class="badge badge-red" style="margin-left:4px;">Overdue</span>` : ''}
-            ${entry.late ? `<span class="badge badge-yellow" style="margin-left:4px;">Late</span>` : ''}
           </td>
         </tr>
       `).join('');
@@ -1082,6 +1085,18 @@
             id: "t5", parentId: null, title: "Write Documentation", isDone: false, projectId: "p1",
             timeSpentOnDay: {}, // No time logged in this period – not included in denominator
             dueDay: "2026-02-28" // Future due date
+          },
+          {
+            id: "t6", parentId: null, title: "API Integration", isDone: false, projectId: "p1",
+            timeSpentOnDay: { [dates[0]]: 5400000 /* 1.5h */ }, dueDay: "2026-02-17" // Overdue with time logged
+          },
+          {
+            id: "t6-1", parentId: "t6", title: "Fix authentication endpoint", isDone: true, doneOn: new Date('2026-02-21T14:00Z').getTime(), projectId: "p1",
+            timeSpentOnDay: { [dates[1]]: 7200000 /* 2h */ } // Child task (subtask of t6)
+          },
+          {
+            id: "t7", parentId: null, title: "Review Code", isDone: true, doneOn: new Date('2026-02-21T15:00Z').getTime(), projectId: "p1",
+            timeSpentOnDay: { [dates[1]]: 3600000 /* 1h */ }, dueDay: "2026-02-19" // Late - completed 2 days after due date
           }
         ];
 
