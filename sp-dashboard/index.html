@@ -264,8 +264,8 @@
         <div class="control-box">
           <label for="date-preset">Period</label>
           <select id="date-preset">
-            <option value="today">Today</option>
-            <option value="week" selected>Past Week</option>
+            <option value="today" selected>Today</option>
+            <option value="week">Past Week</option>
             <option value="month">Past Month</option>
             <option value="year">Past Year</option>
             <option value="custom">Custom Range...</option>
@@ -512,7 +512,7 @@
     const todayObjInit = new Date();
     const lastWeekObjInit = new Date();
     lastWeekObjInit.setDate(todayObjInit.getDate() - 6);
-    document.getElementById('date-from').value = lastWeekObjInit.toISOString().split('T')[0];
+    document.getElementById('date-from').value = todayObjInit.toISOString().split('T')[0];
     document.getElementById('date-to').value = todayObjInit.toISOString().split('T')[0];
 
     const presetSelect = document.getElementById('date-preset');
