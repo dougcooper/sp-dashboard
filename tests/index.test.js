@@ -364,6 +364,97 @@ describe('Date Range Reporter UI', () => {
       expect(pieLegend.querySelector('.legend-item')).not.toBeNull();
     });
 
+
+    it('tag breakdown chart renders legend items for tagged tasks', () => {
+      const now = Date.now();
+      const todayStr = new Date(now).toISOString().split('T')[0];
+      const mockTasks = [
+        {
+          id: 't1', parentId: null, title: 'Tagged Task', isDone: true, doneOn: now,
+          tagIds: ['tag1'],
+          timeSpentOnDay: { [todayStr]: 3600000 }
+        },
+        {
+          id: 't2', parentId: null, title: 'Another Tagged Task', isDone: false,
+          tagIds: ['tag2'],
+          timeSpentOnDay: { [todayStr]: 1800000 }
+        }
+      ];
+      const mockTags = [
+        { id: 'tag1', title: 'Frontend' },
+        { id: 'tag2', title: 'Backend' }
+      ];
+
+      window.processData(mockTasks, [], mockTags);
+
+      // Switch to time view to see both tags (t2 is not done so it won't appear in completed)
+      const tagSelect = document.getElementById('tag-chart-select');
+      tagSelect.value = 'time';
+      window.updateTagChart();
+
+      const tagLegend = document.getElementById('tag-legend-container');
+      expect(tagLegend.querySelectorAll('.legend-item').length).toBe(2);
+      expect(tagLegend.textContent).toContain('Frontend');
+      expect(tagLegend.textContent).toContain('Backend');
+    });
+
+    it('tag breakdown chart updates when select changes', () => {
+      const now = Date.now();
+      const todayStr = new Date(now).toISOString().split('T')[0];
+      const yesterdayStr = new Date(now - 86400000).toISOString().split('T')[0];
+      const mockTasks = [
+        {
+          id: 't1', parentId: null, title: 'Done Task', isDone: true, doneOn: now,
+          tagIds: ['tag1'],
+          timeSpentOnDay: { [todayStr]: 7200000 }
+        },
+        {
+          id: 't2', parentId: null, title: 'Late Task', isDone: true, doneOn: now,
+          dueDay: yesterdayStr,
+          tagIds: ['tag2'],
+          timeSpentOnDay: {}
+        }
+      ];
+      const mockTags = [
+        { id: 'tag1', title: 'Frontend' },
+        { id: 'tag2', title: 'Backend' }
+      ];
+
+      window.processData(mockTasks, [], mockTags);
+      const tagSelect = document.getElementById('tag-chart-select');
+      const tagLegend = document.getElementById('tag-legend-container');
+
+      tagSelect.value = 'time';
+      window.updateTagChart();
+      expect(tagLegend.querySelectorAll('.legend-item').length).toBeGreaterThan(0);
+      expect(tagLegend.textContent).toContain('Frontend');
+
+      tagSelect.value = 'completed';
+      window.updateTagChart();
+      expect(tagLegend.querySelectorAll('.legend-item').length).toBeGreaterThan(0);
+
+      tagSelect.value = 'late';
+      window.updateTagChart();
+      expect(tagLegend.querySelectorAll('.legend-item').length).toBeGreaterThan(0);
+      expect(tagLegend.textContent).toContain('Backend');
+    });
+
+    it('tag breakdown chart shows untagged bucket when tasks have no tagIds', () => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const mockTasks = [
+        { id: 't1', parentId: null, title: 'Task', isDone: false, tagIds: [], timeSpentOnDay: { [todayStr]: 3600000 } }
+      ];
+
+      window.processData(mockTasks, [], []);
+
+      const tagSelect = document.getElementById('tag-chart-select');
+      const tagLegend = document.getElementById('tag-legend-container');
+
+      tagSelect.value = 'time';
+      window.updateTagChart();
+      expect(tagLegend.textContent).toContain('Untagged');
+    });
+
     it('detail list columns are sortable when headers are clicked', () => {
       // create two tasks with different dates
       const taskA = { id:'a', parentId:null, title:'A', isDone:false, dueDay:'2026-01-01', timeSpentOnDay:{'2026-01-01':3600000} };

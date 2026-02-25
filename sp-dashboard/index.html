@@ -377,6 +377,24 @@
             </div>
           </div>
 
+          <div class="chart-card">
+            <div class="card-header">
+              <h3 class="card-title">Tag Breakdown</h3>
+              <select id="tag-chart-select" class="chart-select">
+                <option value="time">Time Tracked</option>
+                <option value="completed" selected>Tasks Completed</option>
+                <option value="overdue">Tasks Overdue</option>
+                <option value="late">Completed Late</option>
+              </select>
+            </div>
+            <div class="chart-container">
+              <div class="pie-wrapper">
+                <div class="pie-chart" id="tag-chart-element"></div>
+                <div class="pie-legend" id="tag-legend-container"></div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -447,6 +465,7 @@
     // --- GLOBALS ---
     let cachedTasks = [];
     let cachedProjects = [];
+    let cachedTags = [];
     let latestMetrics = null;
     let currentSort = { key: 'date', dir: 'desc' }; // sorting state for details table
 
@@ -524,13 +543,14 @@
       } else {
         customContainer.classList.add('hidden');
       }
-      processData(cachedTasks, cachedProjects);
+      processData(cachedTasks, cachedProjects, cachedTags);
     });
 
-    document.getElementById('date-from').addEventListener('change', () => processData(cachedTasks, cachedProjects));
-    document.getElementById('date-to').addEventListener('change', () => processData(cachedTasks, cachedProjects));
+    document.getElementById('date-from').addEventListener('change', () => processData(cachedTasks, cachedProjects, cachedTags));
+    document.getElementById('date-to').addEventListener('change', () => processData(cachedTasks, cachedProjects, cachedTags));
     document.getElementById('bar-chart-select').addEventListener('change', () => updateBarChart());
     document.getElementById('pie-chart-select').addEventListener('change', () => updatePieChart());
+    document.getElementById('tag-chart-select').addEventListener('change', () => updateTagChart());
 
     // --- RENDER LOGIC ---
     const updateDashboardUI = (metrics) => {
@@ -573,6 +593,7 @@
 
       updateBarChart();
       updatePieChart();
+      updateTagChart();
       renderTable(sortedEntries);
       updateSortIndicators();
     };
@@ -602,6 +623,20 @@
         renderNativePieChart(latestMetrics.projectOverdueData, (v) => `${Math.round(v)} tasks`);
       } else if (type === 'late') {
         renderNativePieChart(latestMetrics.projectLateData, (v) => `${Math.round(v)} tasks`);
+      }
+    };
+
+    const updateTagChart = () => {
+      if (!latestMetrics) return;
+      const type = document.getElementById('tag-chart-select').value;
+      if (type === 'time') {
+        renderNativePieChart(latestMetrics.tagData, (v) => `${(v / 3600000).toFixed(1)}h`, 'tag-chart-element', 'tag-legend-container');
+      } else if (type === 'completed') {
+        renderNativePieChart(latestMetrics.tagCompletedData, (v) => `${Math.round(v)} tasks`, 'tag-chart-element', 'tag-legend-container');
+      } else if (type === 'overdue') {
+        renderNativePieChart(latestMetrics.tagOverdueData, (v) => `${Math.round(v)} tasks`, 'tag-chart-element', 'tag-legend-container');
+      } else if (type === 'late') {
+        renderNativePieChart(latestMetrics.tagLateData, (v) => `${Math.round(v)} tasks`, 'tag-chart-element', 'tag-legend-container');
       }
     };
 
@@ -666,9 +701,9 @@
       });
     };
 
-    const renderNativePieChart = (projectData, formatFn) => {
-      const pieEl = document.getElementById('pie-chart-element');
-      const legendEl = document.getElementById('pie-legend-container');
+    const renderNativePieChart = (projectData, formatFn, pieElId = 'pie-chart-element', legendElId = 'pie-legend-container') => {
+      const pieEl = document.getElementById(pieElId);
+      const legendEl = document.getElementById(legendElId);
       legendEl.innerHTML = '';
       
       const entries = Object.entries(projectData).sort((a,b) => b[1] - a[1]);
@@ -747,7 +782,7 @@
     };
 
     // process tasks/projects into metrics and update UI
-    const processData = (tasksArr, projectsArr) => {
+    const processData = (tasksArr, projectsArr, tagsArr = []) => {
       // determine date range from preset/selectors
       const preset = document.getElementById('date-preset').value;
       let dateFromStr, dateToStr;
@@ -773,6 +808,12 @@
       // Build lookup maps for faster processing
       const projectMap = {};
       projectsArr.forEach(p => projectMap[p.id] = p.title);
+      const tagMap = {};
+      tagsArr.forEach(t => tagMap[t.id] = t.title);
+
+      const getTagNames = (task) => (task.tagIds && task.tagIds.length > 0)
+          ? task.tagIds.map(id => tagMap[id] || 'Unknown Tag')
+          : ['Untagged'];
       
       let metrics = {
         totalTimeSpent: 0,
@@ -789,6 +830,10 @@
         projectCompletedData: {},
         projectOverdueData: {},
         projectLateData: {},
+        tagData: {},
+        tagCompletedData: {},
+        tagOverdueData: {},
+        tagLateData: {},
         tableEntries: []
       };
 
@@ -817,6 +862,7 @@
         const pName = task.projectId && projectMap[task.projectId] 
             ? projectMap[task.projectId] 
             : 'Uncategorized';
+        const tagNames = getTagNames(task);
 
         // count unplanned only if dueDay is missing
         if (!dueStart && !task.isDone) {
@@ -838,9 +884,11 @@
           if (isLate) {
             metrics.lateCompleted++;
             metrics.projectLateData[pName] = (metrics.projectLateData[pName] || 0) + 1;
+            tagNames.forEach(t => { metrics.tagLateData[t] = (metrics.tagLateData[t] || 0) + 1; });
           }
           countedOverdue.add(task.id);
           metrics.projectOverdueData[pName] = (metrics.projectOverdueData[pName] || 0) + 1;
+          tagNames.forEach(t => { metrics.tagOverdueData[t] = (metrics.tagOverdueData[t] || 0) + 1; });
         }
 
         dateRange.forEach((dateStr, index) => {
@@ -868,6 +916,7 @@
           if (task.isDone && task.doneOn && task.doneOn >= dayStart && task.doneOn <= dayEnd) {
             metrics.completedPerDay.data[index]++;
             metrics.projectCompletedData[pName] = (metrics.projectCompletedData[pName] || 0) + 1;
+            tagNames.forEach(t => { metrics.tagCompletedData[t] = (metrics.tagCompletedData[t] || 0) + 1; });
             if (isLate) {
               metrics.latePerDay.data[index]++;
             }
@@ -918,6 +967,7 @@
           metrics.totalTimeSpent += taskTimeInRange;
           if (!metrics.projectData[pName]) metrics.projectData[pName] = 0;
           metrics.projectData[pName] += taskTimeInRange;
+          tagNames.forEach(t => { metrics.tagData[t] = (metrics.tagData[t] || 0) + taskTimeInRange; });
         }
 
         // count tasks that had activity OR were completed OR are due (in range)
@@ -942,6 +992,8 @@
                         ? projectMap[task.projectId]
                         : 'Uncategorized';
             metrics.projectOverdueData[pName] = (metrics.projectOverdueData[pName] || 0) + 1;
+            const tagNames = getTagNames(task);
+            tagNames.forEach(t => { metrics.tagOverdueData[t] = (metrics.tagOverdueData[t] || 0) + 1; });
             countedOverdue.add(task.id);
           }
         }
@@ -985,6 +1037,7 @@
     window.processData = processData;
     window.updateBarChart = updateBarChart;
     window.updatePieChart = updatePieChart;
+    window.updateTagChart = updateTagChart;
     window.sortEntries = sortEntries;
 
     // --- SP INTEGRATION / NATIVE IFRAME COMMS ---
@@ -1027,7 +1080,9 @@
           console.log("[sp-dashboard] final cachedTasks done count:", finalDoneCount);
           cachedProjects = await window.PluginAPI.getAllProjects() || [];
           console.log("[sp-dashboard] received projects count", cachedProjects.length);
-          processData(cachedTasks, cachedProjects);
+          cachedTags = (typeof window.PluginAPI.getTags === 'function' && await window.PluginAPI.getTags()) || [];
+          console.log("[sp-dashboard] received tags count", cachedTags.length);
+          processData(cachedTasks, cachedProjects, cachedTags);
         } else {
           console.warn("[sp-dashboard] PluginAPI missing inside pullDataFromSP");
         }
@@ -1066,43 +1121,57 @@
           { id: "p2", title: "Marketing Campaign" }
         ];
 
+        cachedTags = [
+          { id: "tag1", title: "Frontend" },
+          { id: "tag2", title: "Backend" },
+          { id: "tag3", title: "Design" }
+        ];
+
         cachedTasks = [
           {
             id: "t1", parentId: null, title: "Create Figma Mockups", isDone: true, doneOn: new Date('2026-02-22T10:00Z').getTime(), projectId: "p1",
+            tagIds: ["tag1", "tag3"],
             timeSpentOnDay: { [dates[0]]: 14400000 /* 4h */, [dates[1]]: 7200000 /* 2h */ }
           },
           {
             id: "t2", parentId: null, title: "General Admin", isDone: false, projectId: null,
+            tagIds: [],
             timeSpentOnDay: { [dates[0]]: 3600000 /* 1h */ }
           },
           {
             id: "t3", parentId: null, title: "Draft Email Copy", isDone: true, doneOn: new Date('2026-02-20T10:00Z').getTime(), projectId: "p2",
+            tagIds: ["tag1"],
             timeSpentOnDay: { [dates[2]]: 18000000 /* 5h */ }
           },
           {
             id: "t4", parentId: null, title: "Setup Database", isDone: false, projectId: "p1",
+            tagIds: ["tag2"],
             timeSpentOnDay: { [dates[3]]: 10800000 /* 3h */ }, dueDay: "2026-02-18" // Overdue
           },
           {
             id: "t5", parentId: null, title: "Write Documentation", isDone: false, projectId: "p1",
+            tagIds: [],
             timeSpentOnDay: {}, // No time logged in this period – not included in denominator
             dueDay: "2026-02-28" // Future due date
           },
           {
             id: "t6", parentId: null, title: "API Integration", isDone: false, projectId: "p1",
+            tagIds: ["tag2"],
             timeSpentOnDay: { [dates[0]]: 5400000 /* 1.5h */ }, dueDay: "2026-02-17" // Overdue with time logged
           },
           {
             id: "t6-1", parentId: "t6", title: "Fix authentication endpoint", isDone: true, doneOn: new Date('2026-02-21T14:00Z').getTime(), projectId: "p1",
+            tagIds: ["tag2"],
             timeSpentOnDay: { [dates[1]]: 7200000 /* 2h */ } // Child task (subtask of t6)
           },
           {
             id: "t7", parentId: null, title: "Review Code", isDone: true, doneOn: new Date('2026-02-21T15:00Z').getTime(), projectId: "p1",
+            tagIds: ["tag1", "tag2"],
             timeSpentOnDay: { [dates[1]]: 3600000 /* 1h */ }, dueDay: "2026-02-19" // Late - completed 2 days after due date
           }
         ];
 
-        processData(cachedTasks, cachedProjects);
+        processData(cachedTasks, cachedProjects, cachedTags);
       }
     }, 500);
 
