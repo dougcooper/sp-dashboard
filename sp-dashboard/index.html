@@ -264,7 +264,8 @@
         <div class="control-box">
           <label for="date-preset">Period</label>
           <select id="date-preset">
-            <option value="week" selected>Past Week</option>
+            <option value="today" selected>Today</option>
+            <option value="week">Past Week</option>
             <option value="month">Past Month</option>
             <option value="year">Past Year</option>
             <option value="custom">Custom Range...</option>
@@ -511,7 +512,7 @@
     const todayObjInit = new Date();
     const lastWeekObjInit = new Date();
     lastWeekObjInit.setDate(todayObjInit.getDate() - 6);
-    document.getElementById('date-from').value = lastWeekObjInit.toISOString().split('T')[0];
+    document.getElementById('date-from').value = todayObjInit.toISOString().split('T')[0];
     document.getElementById('date-to').value = todayObjInit.toISOString().split('T')[0];
 
     const presetSelect = document.getElementById('date-preset');
@@ -919,9 +920,10 @@
           metrics.projectData[pName] += taskTimeInRange;
         }
 
-        // count tasks that had activity OR were completed (in range)
+        // count tasks that had activity OR were completed OR are due (in range)
         const taskCompletedInRange = task.isDone && task.doneOn && dateRange.includes(new Date(task.doneOn).toISOString().split('T')[0]);
-        if (taskTimeInRange > 0 || taskCompletedInRange) {
+        const taskDueInRange = task.dueDay && dateRange.includes(task.dueDay);
+        if (taskTimeInRange > 0 || taskCompletedInRange || taskDueInRange) {
           metrics.totalTasks++;
           if (taskCompletedInRange) {
             metrics.totalCompleted++;
