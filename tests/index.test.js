@@ -364,6 +364,33 @@ describe('Date Range Reporter UI', () => {
       expect(pieLegend.querySelector('.legend-item')).not.toBeNull();
     });
 
+    it('from-weekday preset with weekday picker should produce correct date range', () => {
+      const presetSelect = document.getElementById('date-preset');
+      const weekdaySelect = document.getElementById('weekday-select');
+      const barContainer = document.getElementById('bar-chart-container');
+      const weekdayPickerContainer = document.getElementById('weekday-picker-container');
+
+      presetSelect.value = 'from-weekday';
+      presetSelect.dispatchEvent(new Event('change'));
+      expect(weekdayPickerContainer.classList.contains('hidden')).toBe(false);
+
+      // Test each weekday
+      const today = new Date();
+      for (const targetDay of [0, 1, 2, 3, 4, 5, 6]) {
+        weekdaySelect.value = String(targetDay);
+        weekdaySelect.dispatchEvent(new Event('change'));
+        window.processData([], []);
+
+        const daysBack = (today.getDay() - targetDay + 7) % 7;
+        expect(barContainer.querySelectorAll('.bar-col').length).toBe(daysBack + 1);
+      }
+
+      // Switching away hides the picker
+      presetSelect.value = 'today';
+      presetSelect.dispatchEvent(new Event('change'));
+      expect(weekdayPickerContainer.classList.contains('hidden')).toBe(true);
+    });
+
     it('detail list columns are sortable when headers are clicked', () => {
       // create two tasks with different dates
       const taskA = { id:'a', parentId:null, title:'A', isDone:false, dueDay:'2026-01-01', timeSpentOnDay:{'2026-01-01':3600000} };
