@@ -269,6 +269,19 @@
             <option value="month">Past Month</option>
             <option value="year">Past Year</option>
             <option value="custom">Custom Range...</option>
+            <option value="from-weekday">Starting from weekday</option>
+          </select>
+        </div>
+        <div id="weekday-picker-container" class="control-box hidden">
+          <label for="weekday-select">Weekday</label>
+          <select id="weekday-select">
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+            <option value="0">Sunday</option>
           </select>
         </div>
       </div>
@@ -517,15 +530,15 @@
 
     const presetSelect = document.getElementById('date-preset');
     const customContainer = document.getElementById('custom-date-container');
+    const weekdayPickerContainer = document.getElementById('weekday-picker-container');
 
     presetSelect.addEventListener('change', (e) => {
-      if (e.target.value === 'custom') {
-        customContainer.classList.remove('hidden');
-      } else {
-        customContainer.classList.add('hidden');
-      }
+      customContainer.classList.toggle('hidden', e.target.value !== 'custom');
+      weekdayPickerContainer.classList.toggle('hidden', e.target.value !== 'from-weekday');
       processData(cachedTasks, cachedProjects);
     });
+
+    document.getElementById('weekday-select').addEventListener('change', () => processData(cachedTasks, cachedProjects));
 
     document.getElementById('date-from').addEventListener('change', () => processData(cachedTasks, cachedProjects));
     document.getElementById('date-to').addEventListener('change', () => processData(cachedTasks, cachedProjects));
@@ -763,6 +776,10 @@
           startObj.setMonth(endObj.getMonth() - 1);
         } else if (preset === 'year') {
           startObj.setFullYear(endObj.getFullYear() - 1);
+        } else if (preset === 'from-weekday') {
+          const targetDay = parseInt(document.getElementById('weekday-select').value, 10);
+          const daysBack = (endObj.getDay() - targetDay + 7) % 7;
+          startObj.setDate(endObj.getDate() - daysBack);
         }
         dateFromStr = startObj.toISOString().split('T')[0];
         dateToStr = endObj.toISOString().split('T')[0];
