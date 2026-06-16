@@ -184,13 +184,12 @@
     .chart-select { background: var(--card-bg, #1e1e1e); color: var(--text-color, #fff); border: 1px solid var(--divider-color, #333); border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; }
 
     /* --- NATIVE CHARTS --- */
-    .chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; }
+    .chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; padding-left: 40px; }
     
     .bar-chart { display: flex; align-items: flex-end; justify-content: flex-start; width: 100%; height: 100%; padding-top: 1rem; gap: 4px; overflow-x: auto; }
-    .bar-col { flex: 0 0 32px; } /* fixed width columns prevent overlap and allow scrolling */
-    .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; position: relative; height: 214px; margin-bottom: 20px; }
     .bar { width: 100%; max-width: 32px; background: var(--c-primary, #03a9f4); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; position: relative; }
-    .bar-label { font-size: 0.7rem; color: var(--text-color-muted, #9e9e9e); margin-top: 0.5rem; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+    .bar-label { position: absolute; bottom: -20px; left: 0; right: 0; margin: 0; height: 20px; line-height: 20px; font-size: 0.7rem; color: var(--text-color-muted, #9e9e9e); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* Bar chart tooltip positioned at pointer */
     .bar-tooltip {
@@ -199,6 +198,19 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     .bar-tooltip.visible { display: block; }
+
+    .y-grid-line {
+      position: absolute; left: 0; right: 0; height: 1px;
+      background: var(--divider-color, #333); opacity: 0.4;
+      pointer-events: none;
+    }
+    .y-axis-label {
+      position: absolute; left: 0; width: 36px; padding-right: 4px;
+      text-align: right; font-size: 0.65rem;
+      color: var(--text-color-muted, #9e9e9e);
+      transform: translateY(50%);
+      pointer-events: none; line-height: 1;
+    }
 
     .pie-wrapper { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 2rem; }
     .pie-chart {
@@ -580,14 +592,17 @@
     const updateBarChart = () => {
       if (!latestMetrics) return;
       const type = document.getElementById('bar-chart-select').value;
+      const taskYFn = (v) => `${Math.round(v)}`;
+      const timeYFn = (v) => `${Math.round(v / 3600000)}h`;
+      const HOUR = 3600000;
       if (type === 'time') {
-        renderGenericBarChart(latestMetrics.weeklyData, 'bar-chart-container', 'var(--c-primary, #03a9f4)', (v) => `${(v / 3600000).toFixed(1)}h`);
+        renderGenericBarChart(latestMetrics.weeklyData, 'bar-chart-container', 'var(--c-primary, #03a9f4)', (v) => `${(v / 3600000).toFixed(1)}h`, timeYFn, HOUR);
       } else if (type === 'completed') {
-        renderGenericBarChart(latestMetrics.completedPerDay, 'bar-chart-container', '#4ade80', (v) => `${Math.round(v)} tasks`);
+        renderGenericBarChart(latestMetrics.completedPerDay, 'bar-chart-container', '#4ade80', (v) => `${Math.round(v)} tasks`, taskYFn);
       } else if (type === 'overdue') {
-        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#f87171', (v) => `${Math.round(v)} tasks`);
+        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#f87171', (v) => `${Math.round(v)} tasks`, taskYFn);
       } else if (type === 'late') {
-        renderGenericBarChart(latestMetrics.latePerDay, 'bar-chart-container', '#fbbf24', (v) => `${Math.round(v)} tasks`);
+        renderGenericBarChart(latestMetrics.latePerDay, 'bar-chart-container', '#fbbf24', (v) => `${Math.round(v)} tasks`, taskYFn);
       }
     };
 
@@ -605,12 +620,35 @@
       }
     };
 
-    const renderGenericBarChart = (chartData, containerId, color, formatFn) => {
+    const renderGenericBarChart = (chartData, containerId, color, formatFn, yTickFn, unitSize = 1) => {
       const container = document.getElementById(containerId);
       container.innerHTML = '';
+      const parentEl = container.parentElement;
+      parentEl.querySelectorAll('.y-grid-line, .y-axis-label').forEach(el => el.remove());
       if (chartData.data.length === 0) return;
-      
-      const maxVal = Math.max(...chartData.data, 1); 
+
+      const realMax = Math.max(...chartData.data);
+      const yStep = Math.max(Math.ceil(Math.ceil(realMax / unitSize) / 4), 1);
+      const scaleMaxUnits = Math.max(yStep * 4, 4);
+      const scaleMax = scaleMaxUnits * unitSize;
+
+      const CHART_HEIGHT = 250, BOTTOM_OFFSET = 20, TOP_OFFSET = 16;
+      const BAR_AREA = CHART_HEIGHT - TOP_OFFSET - BOTTOM_OFFSET;
+
+      [1, 2, 3, 4].forEach(i => {
+        const bottomPx = BOTTOM_OFFSET + (i / 4) * BAR_AREA;
+
+        const line = document.createElement('div');
+        line.className = 'y-grid-line';
+        line.style.bottom = bottomPx + 'px';
+        parentEl.appendChild(line);
+
+        const lbl = document.createElement('div');
+        lbl.className = 'y-axis-label';
+        lbl.style.bottom = bottomPx + 'px';
+        lbl.textContent = yTickFn(i * yStep * unitSize);
+        parentEl.appendChild(lbl);
+      });
       // adjust bars for preset: monthly/yearly should cap at 12
       let maxBars = 30;
       const preset = document.getElementById('date-preset').value;
@@ -626,15 +664,15 @@
           chunkCount++;
         }
         
-        const val = step === 1 ? chunkSum : chunkSum / chunkCount; 
+        const val = step === 1 ? chunkSum : chunkSum / chunkCount;
         const label = chartData.labels[i].substring(5);
-        const heightPct = (val / maxVal) * 100;
+        const heightPx = (val / scaleMax) * BAR_AREA;
         const displayVal = formatFn(val);
 
         const col = document.createElement('div');
         col.className = 'bar-col';
         col.innerHTML = `
-          <div class="bar" style="height: ${heightPct}%; background: ${color};" data-val="${displayVal}"></div>
+          <div class="bar" style="height: ${heightPx}px; background: ${color};" data-val="${displayVal}"></div>
           <div class="bar-label" title="${chartData.labels[i]}">${label}</div>
         `;
         container.appendChild(col);
