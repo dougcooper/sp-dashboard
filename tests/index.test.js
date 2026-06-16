@@ -6,6 +6,8 @@ import { resolve } from 'path';
 // file moved into the sp-dashboard subdirectory
 const html = readFileSync(resolve(__dirname, '../sp-dashboard/index.html'), 'utf8');
 
+const toLocalDate = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
 describe('Date Range Reporter UI', () => {
   let scriptContent;
 
@@ -41,6 +43,43 @@ describe('Date Range Reporter UI', () => {
       const range = window.getDatesInRange('2026-02-20', '2026-02-22');
       expect(range).toEqual(['2026-02-20', '2026-02-21', '2026-02-22']);
     });
+
+    it('getDatesInRange should tolerate full ISO timestamps as inputs', () => {
+      const range = window.getDatesInRange('2026-02-20T10:00:00Z', '2026-02-22T10:00:00Z');
+      expect(range).toEqual(['2026-02-20', '2026-02-21', '2026-02-22']);
+    });
+
+    it('getDueBounds dueEnd should be end-of-day (DST-safe calculation)', () => {
+      const { dueStart, dueEnd } = window.getDueBounds({ dueDay: '2026-03-28' });
+      expect(dueStart).not.toBeNull();
+      expect(dueEnd).toBeGreaterThan(dueStart);
+      expect(dueEnd - dueStart).toBeGreaterThanOrEqual(82800000); // at least 23h
+      expect(dueEnd - dueStart).toBeLessThanOrEqual(90000000);    // at most 25h
+    });
+
+    it('getDueBounds should handle a full ISO timestamp in dueDay', () => {
+      const { dueStart, dueEnd } = window.getDueBounds({ dueDay: '2026-02-20T10:00:00Z' });
+      expect(dueStart).not.toBeNull();
+      expect(dueEnd).not.toBeNull();
+      // dueStart should parse to 2026-02-20 local midnight
+      expect(toLocalDate(new Date(dueStart))).toBe('2026-02-20');
+    });
+
+    it('month preset should not roll over when today is the 31st', () => {
+      // March 31, 2026 at noon — without the fix, setMonth(Feb) on Mar 31 rolls to Mar 3
+      vi.useFakeTimers({ now: new Date('2026-03-31T12:00:00').getTime() });
+      const consoleSpy = vi.spyOn(console, 'log');
+      const presetSelect = document.getElementById('date-preset');
+      presetSelect.value = 'month';
+      presetSelect.dispatchEvent(new Event('change'));
+      window.processData([], []);
+      vi.useRealTimers();
+      const rangeLog = consoleSpy.mock.calls.find(args => String(args[0]).includes('computed date range'));
+      expect(rangeLog).toBeDefined();
+      expect(rangeLog[1]).toBe('2026-02-28'); // should be Feb 28, not Mar 3
+      expect(rangeLog[2]).toBe('2026-03-31');
+      consoleSpy.mockRestore();
+    });
   });
 
   describe('Dashboard State Updates', () => {
@@ -52,14 +91,14 @@ describe('Date Range Reporter UI', () => {
           title: 'Task 1',
           isDone: true,
           doneOn: new Date().getTime(),
-          timeSpentOnDay: { [new Date().toISOString().split('T')[0]]: 7200000 } // 2h
+          timeSpentOnDay: { [toLocalDate(new Date())]: 7200000 } // 2h
         },
         {
           id: 't2',
           parentId: null,
           title: 'Task 2',
           isDone: false,
-          timeSpentOnDay: { [new Date().toISOString().split('T')[0]]: 3600000 } // 1h
+          timeSpentOnDay: { [toLocalDate(new Date())]: 3600000 } // 1h
         }
       ];
       const mockProjects = [{ id: 'p1', title: 'Test Project' }];
@@ -79,7 +118,7 @@ describe('Date Range Reporter UI', () => {
 
     it('should honor dueDay provided initially', () => {
       const now = Date.now();
-      const dueStr = new Date(now - 86400000).toISOString().split('T')[0];
+      const dueStr = toLocalDate(new Date(now - 86400000));
       const task = {
         id: 't-initial',
         parentId: null,
@@ -112,7 +151,7 @@ describe('Date Range Reporter UI', () => {
       expect(document.getElementById('stat-overdue').innerText).toBe('0');
 
       // add dueDay yesterday and trigger again
-      task.dueDay = new Date(now - 86400000).toISOString().split('T')[0];
+      task.dueDay = toLocalDate(new Date(now - 86400000));
       window.processData(tasks, []);
       expect(document.getElementById('stat-overdue').innerText).toBe('1');
     });
@@ -134,7 +173,7 @@ describe('Date Range Reporter UI', () => {
       expect(document.getElementById('stat-late').innerText).toBe('0');
 
       // now add dueDay equal to today
-      task.dueDay = new Date(now).toISOString().split('T')[0];
+      task.dueDay = toLocalDate(new Date(now));
       window.processData(tasks, []);
       expect(document.getElementById('stat-overdue').innerText).toBe('0');
       expect(document.getElementById('stat-late').innerText).toBe('0');
@@ -149,7 +188,7 @@ describe('Date Range Reporter UI', () => {
         title: 'Done Late',
         isDone: true,
         doneOn: now,
-        dueDay: due.toISOString().split('T')[0],
+        dueDay: toLocalDate(due),
         timeSpentOnDay: {}
       };
       window.processData([task], []);
@@ -178,7 +217,7 @@ describe('Date Range Reporter UI', () => {
 
     it('should not mark a task due today as late if completed same day', () => {
       const now = Date.now();
-      const todayStr = new Date(now).toISOString().split('T')[0];
+      const todayStr = toLocalDate(new Date(now));
       const task = {
         id: 't-due-today',
         parentId: null,
@@ -206,7 +245,7 @@ describe('Date Range Reporter UI', () => {
         title: 'subtask done',
         isDone: true,
         doneOn: now,
-        dueDay: new Date(now).toISOString().split('T')[0],
+        dueDay: toLocalDate(new Date(now)),
         timeSpentOnDay: {}
       };
       window.processData([sub], []);
@@ -215,7 +254,7 @@ describe('Date Range Reporter UI', () => {
     });
 
     it('should count tasks due today in totalTasks denominator even with no time logged', () => {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = toLocalDate(new Date());
       const taskDueToday = {
         id: 't-due-no-time',
         parentId: null,
@@ -239,7 +278,7 @@ describe('Date Range Reporter UI', () => {
         title: 'Done Task',
         isDone: true,
         doneOn: now,
-        dueDay: new Date(now).toISOString().split('T')[0],
+        dueDay: toLocalDate(new Date(now)),
         timeSpentOnDay: {}
       };
       // Simulate what happens when pullDataFromSP combines activeTasks and archivedTasks
@@ -313,10 +352,38 @@ describe('Date Range Reporter UI', () => {
       expect(barContainer.querySelectorAll('.bar-col').length).toBe(1);
     });
 
+    it('this-week preset should include Monday through today and exclude last Sunday', () => {
+      const presetSelect = document.getElementById('date-preset');
+      presetSelect.value = 'this-week';
+      presetSelect.dispatchEvent(new Event('change'));
+
+      // Build a task logged on last Sunday (always before this week's Monday)
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      const lastSunday = new Date(now);
+      lastSunday.setDate(now.getDate() - daysToMonday - 1);
+      const lastSundayStr = toLocalDate(lastSunday);
+      const todayStr = toLocalDate(now);
+
+      const taskThisWeek = { id: 'tw1', parentId: null, title: 'This Week Task', isDone: true, doneOn: now.getTime(), timeSpentOnDay: { [todayStr]: 3600000 } };
+      const taskLastWeek = { id: 'tw2', parentId: null, title: 'Last Week Task', isDone: true, doneOn: lastSunday.getTime(), timeSpentOnDay: { [lastSundayStr]: 3600000 } };
+
+      window.processData([taskThisWeek, taskLastWeek], []);
+
+      // Only this week's task time should be counted
+      expect(document.getElementById('stat-time').innerText).toBe('1h 0m');
+
+      // Bar chart should have at most 7 bars (Mon–today)
+      const barContainer = document.getElementById('bar-chart-container');
+      expect(barContainer.querySelectorAll('.bar-col').length).toBeLessThanOrEqual(7);
+      expect(barContainer.querySelectorAll('.bar-col').length).toBeGreaterThanOrEqual(1);
+    });
+
     it('bar and pie charts should render for overdue and late types and details show badges', () => {
       // prepare metrics with one overdue task and one late task
       const now = Date.now();
-      const yesterdayStr = new Date(now - 86400000).toISOString().split('T')[0];
+      const yesterdayStr = toLocalDate(new Date(now - 86400000));
       const overdueTask = { id:'t1', parentId:null, title:'Foo', isDone:false, dueDay:'2026-02-20', timeSpentOnDay:{'2026-02-20':0} };
       const lateTask = { id:'t2', parentId:null, title:'Bar', isDone:true, doneOn: now, dueDay: yesterdayStr, timeSpentOnDay:{} };
       window.processData([overdueTask, lateTask], []);
