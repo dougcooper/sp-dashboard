@@ -1441,15 +1441,23 @@
 
       const grouping = getBarGrouping();
       const aggregation = getBarAggregation();
-      let bars; // [{ label, title, val }]
+      let bars; // [{ label, title, val, breakdown }]
 
-      const applyAgg = ({ sum, count, workdays }) =>
+      const applyAgg = (sum, count, workdays) =>
         aggregation === 'avg-per-day'     ? sum / Math.max(count, 1)
         : aggregation === 'avg-per-workday' ? sum / Math.max(workdays, 1)
         : sum;
 
+      const aggregateBreakdown = (breakdownSum, count, workdays) => {
+        const result = {};
+        for (const [pName, data] of Object.entries(breakdownSum)) {
+          result[pName] = { ...data, val: applyAgg(data.val, count, workdays) };
+        }
+        return result;
+      };
+
       if (grouping === 'weekly') {
-        const weekMap = new Map(); // Monday YYYY-MM-DD -> { sum, count, workdays }
+        const weekMap = new Map(); // Monday YYYY-MM-DD -> { sum, count, workdays, breakdownSum }
         chartData.labels.forEach((dateStr, i) => {
           const d = new Date(`${dateStr}T00:00:00`);
           const dow = d.getDay();
@@ -1457,32 +1465,46 @@
           const monday = new Date(d);
           monday.setDate(d.getDate() + toMonday);
           const mondayStr = monday.toISOString().split('T')[0];
-          const e = weekMap.get(mondayStr) || { sum: 0, count: 0, workdays: 0 };
+          const e = weekMap.get(mondayStr) || { sum: 0, count: 0, workdays: 0, breakdownSum: {} };
           e.sum += chartData.data[i];
           e.count++;
           if (dow >= 1 && dow <= 5) e.workdays++;
+          if (chartData.breakdown && chartData.breakdown[i]) {
+            for (const [pName, data] of Object.entries(chartData.breakdown[i])) {
+              if (!e.breakdownSum[pName]) e.breakdownSum[pName] = { val: 0, color: data.color };
+              e.breakdownSum[pName].val += data.val;
+            }
+          }
           weekMap.set(mondayStr, e);
         });
         bars = [...weekMap.entries()].map(([mondayStr, acc]) => ({
           label: formatBarLabel(mondayStr),
           title: t('dynamic.weekOf', mondayStr),
-          val: applyAgg(acc),
+          val: applyAgg(acc.sum, acc.count, acc.workdays),
+          breakdown: aggregateBreakdown(acc.breakdownSum, acc.count, acc.workdays)
         }));
       } else if (grouping === 'monthly') {
-        const monthMap = new Map(); // 'YYYY-MM' -> { sum, count, workdays }
+        const monthMap = new Map(); // 'YYYY-MM' -> { sum, count, workdays, breakdownSum }
         chartData.labels.forEach((dateStr, i) => {
           const ym = dateStr.substring(0, 7);
           const dow = new Date(`${dateStr}T00:00:00`).getDay();
-          const e = monthMap.get(ym) || { sum: 0, count: 0, workdays: 0 };
+          const e = monthMap.get(ym) || { sum: 0, count: 0, workdays: 0, breakdownSum: {} };
           e.sum += chartData.data[i];
           e.count++;
           if (dow >= 1 && dow <= 5) e.workdays++;
+          if (chartData.breakdown && chartData.breakdown[i]) {
+            for (const [pName, data] of Object.entries(chartData.breakdown[i])) {
+              if (!e.breakdownSum[pName]) e.breakdownSum[pName] = { val: 0, color: data.color };
+              e.breakdownSum[pName].val += data.val;
+            }
+          }
           monthMap.set(ym, e);
         });
         bars = [...monthMap.entries()].map(([ym, acc]) => ({
           label: formatMonthLabel(ym),
           title: ym,
-          val: applyAgg(acc),
+          val: applyAgg(acc.sum, acc.count, acc.workdays),
+          breakdown: aggregateBreakdown(acc.breakdownSum, acc.count, acc.workdays)
         }));
       } else {
         // daily - one bar per day
@@ -1490,6 +1512,7 @@
           label: formatBarLabel(dateStr),
           title: dateStr,
           val: chartData.data[i],
+          breakdown: chartData.breakdown ? chartData.breakdown[i] : {}
         }));
       }
 
@@ -1510,11 +1533,35 @@
       const xAxis = document.createElement('div');
       xAxis.className = 'x-axis';
 
-      bars.forEach(({ label, title, val }, i) => {
+      bars.forEach(({ label, title, val, breakdown }, i) => {
         const heightPct = (val / maxVal) * 100;
         const col = document.createElement('div');
         col.className = 'bar-col';
-        col.innerHTML = `<div class="bar-area"><div class="bar" style="height:${heightPct}%;background:${color};" data-val="${formatFn(val)}" data-label="${label}"></div></div>`;
+        
+        let innerHTML = '';
+        let tooltipData = [];
+        
+        if (breakdown && Object.keys(breakdown).length > 0 && val > 0) {
+          const sortedBreakdown = Object.entries(breakdown).sort((a,b) => b[1].val - a[1].val);
+          innerHTML = `<div class="bar-area"><div class="bar" style="height:${heightPct}%; display: flex; flex-direction: column-reverse; background: transparent; overflow: hidden; border-radius: 3px 3px 0 0;" data-val="${formatFn(val)}" data-label="${label}">`;
+          for (const [pName, data] of sortedBreakdown) {
+            const hPct = (data.val / val) * 100;
+            if (hPct > 0) {
+              innerHTML += `<div style="height: ${hPct}%; width: 100%; background: ${data.color};"></div>`;
+              tooltipData.push(`${pName}: ${formatFn(data.val)}`);
+            }
+          }
+          innerHTML += `</div></div>`;
+        } else {
+          innerHTML = `<div class="bar-area"><div class="bar" style="height:${heightPct}%;background:${color};" data-val="${formatFn(val)}" data-label="${label}"></div></div>`;
+        }
+
+        col.innerHTML = innerHTML;
+        const barEl = col.querySelector('.bar');
+        if (barEl && tooltipData.length > 0) {
+          barEl.setAttribute('data-tooltip', tooltipData.join('<br>'));
+        }
+        
         barsBody.appendChild(col);
 
         if (i % labelStep === 0) {
@@ -1545,12 +1592,16 @@
         bar.addEventListener('mouseenter', () => {
           const label = bar.getAttribute('data-label');
           const val = bar.getAttribute('data-val');
-          tooltip.textContent = label ? `${label}: ${val}` : val;
+          const tData = bar.getAttribute('data-tooltip');
+          let html = label ? `<strong>${label}: ${val}</strong>` : `<strong>${val}</strong>`;
+          if (tData) {
+            html += `<br><div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--divider-color, #444); text-align: left; font-weight: normal; color: #ccc;">${tData}</div>`;
+          }
+          tooltip.innerHTML = html;
           tooltip.classList.add('visible');
         });
         
         bar.addEventListener('mousemove', (e) => {
-          // Position tooltip at cursor with small offset
           tooltip.style.left = `${e.clientX + 8}px`;
           tooltip.style.top = `${e.clientY - 12}px`;
         });
@@ -1797,10 +1848,10 @@
         overdueTasks: 0,
         lateCompleted: 0, // completed after due date
         unplannedCount: 0, // tasks without a dueDay
-        weeklyData: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
-        completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
-        overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
-        latePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
+        weeklyData: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        latePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
         projectData: {},
         projectCompletedData: {},
         projectOverdueData: {},
@@ -1868,6 +1919,9 @@
           const spentOnDate = task.timeSpentOnDay?.[dateStr];
           if (spentOnDate) {
             metrics.weeklyData.data[index] += spentOnDate;
+            if (!metrics.weeklyData.breakdown[index][pName]) metrics.weeklyData.breakdown[index][pName] = { val: 0, color: pColor };
+            metrics.weeklyData.breakdown[index][pName].val += spentOnDate;
+
             taskTimeInRange += spentOnDate;
 
             metrics.tableEntries.push({
@@ -1885,9 +1939,14 @@
           // Completed Logic
           if (task.isDone && task.doneOn && task.doneOn >= dayStart && task.doneOn <= dayEnd) {
             metrics.completedPerDay.data[index]++;
+            if (!metrics.completedPerDay.breakdown[index][pName]) metrics.completedPerDay.breakdown[index][pName] = { val: 0, color: pColor };
+            metrics.completedPerDay.breakdown[index][pName].val++;
+
             metrics.projectCompletedData[pName] = (metrics.projectCompletedData[pName] || 0) + 1;
             if (isLate) {
               metrics.latePerDay.data[index]++;
+              if (!metrics.latePerDay.breakdown[index][pName]) metrics.latePerDay.breakdown[index][pName] = { val: 0, color: pColor };
+              metrics.latePerDay.breakdown[index][pName].val++;
             }
           }
 
@@ -1896,6 +1955,8 @@
             const doneAfter = task.doneOn && task.doneOn > dayEnd;
             if (!task.isDone || doneAfter) {
               metrics.overduePerDay.data[index]++;
+              if (!metrics.overduePerDay.breakdown[index][pName]) metrics.overduePerDay.breakdown[index][pName] = { val: 0, color: pColor };
+              metrics.overduePerDay.breakdown[index][pName].val++;
             }
           }
         });
