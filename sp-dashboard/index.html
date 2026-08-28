@@ -526,10 +526,11 @@
             <div class="card-header">
               <h3 class="card-title" id="bar-chart-title">Daily Trend</h3>
               <select id="bar-chart-select" class="chart-select" style="width:auto">
-                <option value="time">Time tracked</option>
-                <option value="completed" selected>Completed</option>
-                <option value="overdue">Overdue</option>
-                <option value="late">Late</option>
+                <option value="time" data-i18n="bar.time">Time tracked</option>
+                <option value="completed" selected data-i18n="bar.completed">Completed</option>
+                <option value="overdue" data-i18n="bar.overdue">Overdue</option>
+                <option value="late" data-i18n="bar.late">Late</option>
+                <option value="billable" data-i18n="pie.billable">Billable</option>
               </select>
             </div>
             <div class="chart-container">
@@ -1211,7 +1212,7 @@
         sel.value = val;
       };
       setOpts('date-preset', ['preset.today','preset.week','preset.month','preset.year','preset.custom']);
-      setOpts('bar-chart-select', ['bar.time','bar.completed','bar.overdue','bar.late']);
+      setOpts('bar-chart-select', ['bar.time','bar.completed','bar.overdue','bar.late','pie.billable']);
       setOpts('setting-bar-grouping', ['settings.daily','settings.weekly','settings.monthly']);
       setOpts('setting-bar-aggregation', ['settings.total','settings.avgCalDay','settings.avgWorkday']);
       syncPieCategories();
@@ -1391,6 +1392,8 @@
         renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#f87171', (v) => t('dynamic.tasks', v));
       } else if (type === 'late') {
         renderGenericBarChart(latestMetrics.latePerDay, 'bar-chart-container', '#fbbf24', (v) => t('dynamic.tasks', v));
+      } else if (type === 'billable') {
+        renderGenericBarChart(latestMetrics.billablePerDay, 'bar-chart-container', '#a855f7', (v) => `${v.toFixed(2)} ${t('billable.dayUnit')}`);
       }
     };
 
@@ -1852,6 +1855,7 @@
         completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
         overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
         latePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        billablePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
         projectData: {},
         projectCompletedData: {},
         projectOverdueData: {},
@@ -2009,6 +2013,25 @@
           if (taskCompletedInRange) {
             metrics.totalCompleted++;
             console.log("[sp-dashboard] incrementing totalCompleted for", task.id, task.title, "- now at", metrics.totalCompleted);
+          }
+        }
+      });
+
+      // Calculate billablePerDay based on time logged
+      const hpd = parseFloat(document.getElementById('billable-hpd').value) || 8;
+      const msPerDay = hpd * 3600000;
+      dateRange.forEach((dateStr, index) => {
+        const totalMs = metrics.weeklyData.data[index];
+        if (totalMs > 0) {
+          const daysLogged = 1;
+          metrics.billablePerDay.data[index] = daysLogged;
+          const breakdown = metrics.weeklyData.breakdown[index];
+          for (const [pName, pData] of Object.entries(breakdown)) {
+            const pct = pData.val / totalMs;
+            metrics.billablePerDay.breakdown[index][pName] = {
+              val: pct * daysLogged,
+              color: pData.color
+            };
           }
         }
       });
