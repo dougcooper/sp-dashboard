@@ -64,22 +64,33 @@
     .controls {
       display: flex;
       align-items: center;
-      gap: var(--s, 0.5rem);
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
     
     .control-box {
-      background: var(--card-bg, #1e1e1e);
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--divider-color, #333);
-      border-radius: var(--card-border-radius, 8px);
-      padding: var(--s, 0.5rem) var(--s2, 1rem);
+      border-radius: 20px;
+      padding: 0.4rem 1rem;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.2s ease;
+    }
+    
+    .control-box:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--text-color-muted, #666);
     }
 
     .control-box label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       color: var(--text-color-muted, #9e9e9e);
+      margin: 0;
     }
     
     select, input[type="date"] {
@@ -87,12 +98,13 @@
       color: var(--text-color, #fff);
       border: none;
       outline: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
       cursor: pointer;
       padding: 0;
     }
     /* Controls row - uniform compact sizing */
-    #date-preset, input[type="date"] { font-size: 0.875rem; }
+    #date-preset, input[type="date"] { font-size: 0.9rem; }
     /* color-scheme on date inputs is set dynamically based on detected theme */
     select option {
       background: var(--card-bg, #1e1e1e);
@@ -296,7 +308,8 @@
       color: var(--text-color, #fff);
       border: none;
       outline: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
       cursor: pointer;
       padding: 0;
       text-align: left;
@@ -406,12 +419,12 @@
       
       <div class="controls">
         <!-- Custom Date Pickers (Hidden by default) -->
-        <div id="custom-date-container" class="control-box hidden" style="flex-direction: row; gap: var(--s2, 1rem);">
-          <div style="display: flex; flex-direction: column; gap: 4px;">
+        <div id="custom-date-container" class="control-box hidden" style="gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
             <label for="date-from" data-i18n="header.from">From</label>
             <input type="date" id="date-from">
           </div>
-          <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
             <label for="date-to" data-i18n="header.to">To</label>
             <input type="date" id="date-to">
           </div>
