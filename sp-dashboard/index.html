@@ -773,10 +773,10 @@
         'pie.completed': 'Completed',
         'pie.overdue': 'Overdue',
         'pie.late': 'Late',
-        'pie.billable': 'Billable',
+        'pie.billable': 'Work Days',
         'pie.noData': 'No data for selected period',
         'pie.total': 'Total',
-        'billable.days': 'Billable days',
+        'billable.days': 'Work days',
         'billable.hpd': 'Hours / day',
         'billable.sep': '= total ÷',
         'billable.dayUnit': 'd',
@@ -867,10 +867,10 @@
         'pie.completed': 'Terminées',
         'pie.overdue': 'En retard',
         'pie.late': 'Hors délai',
-        'pie.billable': 'Facturable',
+        'pie.billable': 'Jours travaillés',
         'pie.noData': 'Aucune donnée sur cette période',
         'pie.total': 'Total',
-        'billable.days': 'Jours facturables',
+        'billable.days': 'Jours de travail',
         'billable.hpd': 'Heures / jour',
         'billable.sep': '= total ÷',
         'billable.dayUnit': 'j',
@@ -1428,8 +1428,17 @@
           `${formatTime(latestMetrics.totalTimeSpent)} ${t('billable.total')}`;
         document.getElementById('billable-avg-display').textContent =
           `${formatTime(Math.round(currentHpd * 3600000))} ${t('billable.dayAvg')}`;
-        renderNativePieChart(latestMetrics.projectData,
-          (v) => { const d = (v / 3600000 / currentHpd).toFixed(1); return `${d.endsWith('.0') ? Math.round(v / 3600000 / currentHpd) : d}${t('billable.dayUnit')}`; });
+        
+        // Sum billable days per project from daily data
+        const projectBillableData = {};
+        latestMetrics.billablePerDay.breakdown.forEach(dailyBreakdown => {
+          for (const [pName, pData] of Object.entries(dailyBreakdown)) {
+            projectBillableData[pName] = (projectBillableData[pName] || 0) + pData.val;
+          }
+        });
+        
+        renderNativePieChart(projectBillableData,
+          (v) => { const d = v.toFixed(1); return `${d.endsWith('.0') ? Math.round(v) : d}${t('billable.dayUnit')}`; });
       } else {
         billablePanel.classList.add('hidden');
         if (type === 'time') {
