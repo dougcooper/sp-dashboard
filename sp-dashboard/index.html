@@ -464,6 +464,7 @@
       <div class="tabs">
         <button type="button" id="tab-btn-dashboard" class="tab-btn active" onclick="switchTab('dashboard')" data-i18n="tab.dashboard">Dashboard</button>
         <button type="button" id="tab-btn-details" class="tab-btn" onclick="switchTab('details')" data-i18n="tab.details">Detailed List</button>
+        <button type="button" id="tab-btn-billableList" class="tab-btn" onclick="switchTab('billableList')" data-i18n="tab.billableList">Billable List</button>
         <button type="button" id="tab-btn-settings" class="tab-btn" onclick="switchTab('settings')" data-i18n="tab.settings">Settings</button>
       </div>
 
@@ -597,6 +598,26 @@
             </tr>
           </thead>
           <tbody id="details-table-body">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2.5: BILLABLE LIST                    -->
+      <!-- ========================================== -->
+      <div id="view-billableList" class="view-content no-padding hidden">
+        <table class="details-table">
+          <thead>
+            <tr>
+              <th data-i18n="table.date">Date</th>
+              <th data-i18n="table.project">Project</th>
+              <th data-i18n="table.timeSpent">Time Spent</th>
+              <th>%</th>
+              <th data-i18n="pie.billable">Work Days</th>
+            </tr>
+          </thead>
+          <tbody id="billable-table-body">
             <!-- Rows injected by JS -->
           </tbody>
         </table>
@@ -754,6 +775,7 @@
         'preset.custom': 'Custom range [From-To]',
         'tab.dashboard': 'Dashboard',
         'tab.details': 'Detailed List',
+        'tab.billableList': 'Billable List',
         'tab.settings': 'Settings',
         'stat.totalTime': 'Total Time Tracked',
         'stat.completed': 'Tasks Completed',
@@ -848,6 +870,7 @@
         'preset.custom': 'Période personnalisée [Du - Au]',
         'tab.dashboard': 'Vue d’ensemble',
         'tab.details': 'Liste détaillée',
+        'tab.billableList': 'Liste des jours travaillés',
         'tab.settings': 'Paramètres',
         'stat.totalTime': 'Temps total enregistré',
         'stat.completed': 'Tâches terminées',
@@ -1008,7 +1031,7 @@
 
     // --- TAB LOGIC ---
     const switchTab = (tabId) => {
-      ['dashboard', 'details', 'settings'].forEach(id => {
+      ['dashboard', 'details', 'billableList', 'settings'].forEach(id => {
         document.getElementById(`view-${id}`).classList.add('hidden');
         document.getElementById(`tab-btn-${id}`).classList.remove('active');
       });
@@ -1383,6 +1406,7 @@
       updateBarChart();
       updatePieChart();
       renderTable(sortedEntries);
+      renderBillableTable(metrics);
       updateSortIndicators();
     };
 
@@ -1755,6 +1779,55 @@
       `).join('');
     };
 
+    const renderBillableTable = (metrics) => {
+      const tbody = document.getElementById('billable-table-body');
+      
+      const rows = [];
+      metrics.billablePerDay.labels.forEach((dateStr, i) => {
+        const totalMs = metrics.weeklyData.data[i];
+        if (totalMs > 0) {
+          const dailyBreakdown = metrics.weeklyData.breakdown[i];
+          const billableBreakdown = metrics.billablePerDay.breakdown[i];
+          
+          for (const [pName, pData] of Object.entries(dailyBreakdown)) {
+            const ms = pData.val;
+            const pct = (ms / totalMs) * 100;
+            const billableDays = billableBreakdown[pName] ? billableBreakdown[pName].val : 0;
+            
+            rows.push({
+              date: dateStr,
+              projectName: pName,
+              projectColor: pData.color,
+              timeSpent: ms,
+              pct: pct,
+              billableDays: billableDays
+            });
+          }
+        }
+      });
+      
+      rows.sort((a, b) => b.date.localeCompare(a.date) || b.timeSpent - a.timeSpent);
+
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(entry => `
+        <tr>
+          <td style="white-space: nowrap;">${formatTableDate(entry.date)}</td>
+          <td style="font-size: 0.875rem;">
+            <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
+              <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
+            </span>
+          </td>
+          <td class="time-cell">${formatTime(entry.timeSpent)}</td>
+          <td>${entry.pct.toFixed(1)}%</td>
+          <td>${entry.billableDays.toFixed(2)}</td>
+        </tr>
+      `).join('');
+    };
     // helper for normalizing a task's dueDay to day boundaries (UTC)
     const getDueBounds = (task) => {
       let dueStart = null;
