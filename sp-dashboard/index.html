@@ -46,7 +46,9 @@
         flex-direction: row; 
         justify-content: space-between; 
         align-items: center; 
+        flex-wrap: wrap;
       } 
+      .controls { flex-wrap: nowrap; }
     }
     
     .title {
@@ -64,18 +66,19 @@
     .controls {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
     
     .control-box {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--divider-color, #333);
       border-radius: 20px;
-      padding: 0.4rem 1rem;
+      padding: 0.25rem 0.75rem;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.5rem;
       transition: all 0.2s ease;
     }
     
@@ -430,7 +433,7 @@
       
       <div class="controls">
         <!-- Custom Date Pickers (Hidden by default) -->
-        <div id="custom-date-container" class="control-box hidden" style="gap: 1rem;">
+        <div id="custom-date-container" class="control-box hidden" style="gap: 0.5rem;">
           <div style="display: flex; align-items: center; gap: 0.5rem;">
             <label for="date-from" data-i18n="header.from">From</label>
             <input type="date" id="date-from">
