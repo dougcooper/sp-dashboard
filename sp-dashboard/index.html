@@ -533,13 +533,19 @@
           <div class="chart-card">
             <div class="card-header">
               <h3 class="card-title" id="bar-chart-title">Daily Trend</h3>
-              <select id="bar-chart-select" class="chart-select" style="width:auto">
-                <option value="time" data-i18n="bar.time">Time tracked</option>
-                <option value="completed" selected data-i18n="bar.completed">Completed</option>
-                <option value="overdue" data-i18n="bar.overdue">Overdue</option>
-                <option value="late" data-i18n="bar.late">Late</option>
-                <option value="billable" data-i18n="pie.billable">Billable</option>
-              </select>
+              <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <label class="s-toggle" style="margin: 0;" title="Toggle Project Breakdown">
+                  <input type="checkbox" id="bar-chart-breakdown" checked>
+                  <span class="s-track"></span>
+                </label>
+                <select id="bar-chart-select" class="chart-select" style="width:auto">
+                  <option value="time" data-i18n="bar.time">Time tracked</option>
+                  <option value="completed" selected data-i18n="bar.completed">Completed</option>
+                  <option value="overdue" data-i18n="bar.overdue">Overdue</option>
+                  <option value="late" data-i18n="bar.late">Late</option>
+                  <option value="billable" data-i18n="pie.billable">Work Days</option>
+                </select>
+              </div>
             </div>
             <div class="chart-container">
               <div class="bar-chart" id="bar-chart-container"></div>
@@ -790,6 +796,7 @@
         'bar.completed': 'Completed',
         'bar.overdue': 'Overdue',
         'bar.late': 'Late',
+        'bar.breakdown': 'Breakdown',
         'pie.title': 'Project Breakdown',
         'pie.time': 'Time tracked',
         'pie.completed': 'Completed',
@@ -885,6 +892,7 @@
         'bar.completed': 'Terminées',
         'bar.overdue': 'En retard',
         'bar.late': 'Hors délai',
+        'bar.breakdown': 'Ventilation',
         'pie.title': 'Répartition par projet',
         'pie.time': 'Temps enregistré',
         'pie.completed': 'Terminées',
@@ -1108,6 +1116,7 @@
           projectAll:   isAll,
           projectIds:   selectedIds,
           barChartType: document.getElementById('bar-chart-select').value,
+          barChartBreakdown: document.getElementById('bar-chart-breakdown').checked,
           pieChartType: document.getElementById('pie-chart-select').value,
         }));
       } catch (e) { /* ignore */ }
@@ -1125,6 +1134,7 @@
         if (s.dateFrom) document.getElementById('date-from').value = s.dateFrom;
         if (s.dateTo)   document.getElementById('date-to').value   = s.dateTo;
         if (s.barChartType) document.getElementById('bar-chart-select').value = s.barChartType;
+        if (s.barChartBreakdown !== undefined) document.getElementById('bar-chart-breakdown').checked = s.barChartBreakdown;
         if (s.pieChartType) {
           const sel = document.getElementById('pie-chart-select');
           if ([...sel.options].some(o => o.value === s.pieChartType)) sel.value = s.pieChartType;
@@ -1300,6 +1310,7 @@
       saveSession();
     });
     document.getElementById('bar-chart-select').addEventListener('change', () => { updateBarChart(); saveSession(); });
+    document.getElementById('bar-chart-breakdown').addEventListener('change', () => { updateBarChart(); saveSession(); });
     document.getElementById('pie-chart-select').addEventListener('change', () => { updatePieChart(); saveSession(); });
     const PIE_CATEGORIES = [
       { id: 'cat-time',      value: 'time',      labelKey: 'pie.time'     },
@@ -1415,16 +1426,19 @@
       if (!latestMetrics) return;
       updateBarChartTitle();
       const type = document.getElementById('bar-chart-select').value;
+      const showBreakdown = document.getElementById('bar-chart-breakdown').checked;
+      const processMetrics = (m) => showBreakdown ? m : { labels: m.labels, data: m.data };
+
       if (type === 'time') {
-        renderGenericBarChart(latestMetrics.weeklyData, 'bar-chart-container', 'var(--c-primary, #03a9f4)', formatTime);
+        renderGenericBarChart(processMetrics(latestMetrics.weeklyData), 'bar-chart-container', 'var(--c-primary, #03a9f4)', formatTime);
       } else if (type === 'completed') {
-        renderGenericBarChart(latestMetrics.completedPerDay, 'bar-chart-container', '#4ade80', (v) => t('dynamic.tasks', v));
+        renderGenericBarChart(processMetrics(latestMetrics.completedPerDay), 'bar-chart-container', '#4ade80', (v) => t('dynamic.tasks', v));
       } else if (type === 'overdue') {
-        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#f87171', (v) => t('dynamic.tasks', v));
+        renderGenericBarChart(processMetrics(latestMetrics.overduePerDay), 'bar-chart-container', '#f87171', (v) => t('dynamic.tasks', v));
       } else if (type === 'late') {
-        renderGenericBarChart(latestMetrics.latePerDay, 'bar-chart-container', '#fbbf24', (v) => t('dynamic.tasks', v));
+        renderGenericBarChart(processMetrics(latestMetrics.latePerDay), 'bar-chart-container', '#fbbf24', (v) => t('dynamic.tasks', v));
       } else if (type === 'billable') {
-        renderGenericBarChart(latestMetrics.billablePerDay, 'bar-chart-container', '#a855f7', (v) => `${v.toFixed(2)} ${t('billable.dayUnit')}`);
+        renderGenericBarChart(processMetrics(latestMetrics.billablePerDay), 'bar-chart-container', '#a855f7', (v) => `${v.toFixed(2)} ${t('billable.dayUnit')}`);
       }
     };
 
@@ -1691,7 +1705,9 @@
       const fmtPct = (p) => p.toFixed(1).endsWith('.0') ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
 
       entries.forEach(([name, val], index) => {
-        const color = PIE_COLORS[index % PIE_COLORS.length];
+        const color = (latestMetrics && latestMetrics.projectColorMap && latestMetrics.projectColorMap[name]) 
+          ? latestMetrics.projectColorMap[name] 
+          : PIE_COLORS[index % PIE_COLORS.length];
         const percent = (val / totalVal) * 100;
         gradientStops.push(`${color} ${currentPercent}% ${currentPercent + percent}%`);
         currentPercent += percent;
@@ -1949,7 +1965,8 @@
         projectCompletedData: {},
         projectOverdueData: {},
         projectLateData: {},
-        tableEntries: []
+        tableEntries: [],
+        projectColorMap: projectColorMap
       };
 
       const now = Date.now();
