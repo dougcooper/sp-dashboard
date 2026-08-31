@@ -180,9 +180,9 @@
 
     .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
     .stat-title { color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
-    .stat-value-container { display: flex; align-items: baseline; justify-content: space-between; }
-    .stat-value { font-size: 2.25rem; font-weight: bold; }
-    .stat-suffix { color: var(--text-color-muted, #9e9e9e); font-size: 0.875rem; margin-left: 0.25rem; }
+    .stat-value-container { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+    .stat-value { font-size: 2.25rem; font-weight: bold; white-space: nowrap; line-height: 1.2; }
+    .stat-suffix { color: var(--text-color-muted, #9e9e9e); font-size: 0.875rem; text-align: right; margin-left: auto; }
 
     /* Badges */
     .badge { padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
