@@ -410,6 +410,10 @@
       user-select: none;
     }
     .project-filter-option:hover { background: rgba(255,255,255,0.05); }
+    .project-filter-option.selected {
+      background: rgba(3, 169, 244, 0.15);
+      color: var(--c-primary, #03a9f4);
+    }
     .project-filter-option input[type=checkbox] { accent-color: var(--c-primary, #03a9f4); cursor: pointer; }
   </style>
 </head>
@@ -440,13 +444,16 @@
         <!-- Preset Dropdown -->
         <div class="control-box">
           <label for="date-preset" data-i18n="header.period">Period</label>
-          <select id="date-preset">
-            <option value="today" selected>Today</option>
-            <option value="week">Past Week</option>
-            <option value="month">Past Month</option>
-            <option value="year">Past Year</option>
-            <option value="custom">Range</option>
-          </select>
+          <div style="position: relative; display: flex; align-items: center;">
+            <select id="date-preset" style="appearance: none; -webkit-appearance: none; background: transparent; padding-right: 1rem; width: 100%;">
+              <option value="today" selected>Today</option>
+              <option value="week">Past Week</option>
+              <option value="month">Past Month</option>
+              <option value="year">Past Year</option>
+              <option value="custom">Range</option>
+            </select>
+            <span style="position: absolute; right: 0; font-size: 0.75rem; opacity: 0.5; pointer-events: none;">▾</span>
+          </div>
         </div>
 
         <!-- Project Filter (multi-select) -->
@@ -1305,6 +1312,9 @@
         if (cb.checked && allCb) allCb.checked = false;
         else if (!others.some(o => o.checked) && allCb) allCb.checked = true;
       }
+      dropdown.querySelectorAll('.project-filter-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.querySelector('input').checked);
+      });
       updateProjectFilterBtn();
       processData(cachedTasks, cachedProjects);
       saveSession();
@@ -1884,7 +1894,7 @@
       dropdown.innerHTML = '';
       const makeOption = (value, text, checked) => {
         const label = document.createElement('label');
-        label.className = 'project-filter-option';
+        label.className = 'project-filter-option' + (checked ? ' selected' : '');
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.value = value;
