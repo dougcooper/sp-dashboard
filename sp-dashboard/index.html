@@ -208,6 +208,100 @@
     .details-table tr.day-break td { border-top: 2px solid var(--text-color-muted, #9e9e9e); }
     /* per-project totals footer */
     .details-table tfoot td { font-weight: 600; }
+    .details-table tfoot tr.selection-row td {
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 10%, transparent);
+      border-top: 2px solid color-mix(in srgb, var(--c-primary, #03a9f4) 45%, transparent);
+    }
+    /* --- PROJECT GROUPING BAR (above the billable table) --- */
+    .billable-groups {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+      padding: 0.6rem var(--s3, 1.5rem);
+      border-bottom: 1px solid var(--divider-color, #333);
+    }
+    .billable-groups:empty { display: none; }
+    .billable-groups-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-color-muted, #9e9e9e); margin-right: 0.25rem;
+    }
+    .group-chip {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.25rem 0.5rem 0.25rem 0.65rem;
+      border: 1px solid var(--divider-color, #333); border-radius: 999px;
+      font-size: 0.8rem; max-width: 260px; cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .group-chip:hover { border-color: var(--text-color-muted, #666); }
+    .group-chip.is-grouped {
+      border-color: color-mix(in srgb, var(--c-primary, #03a9f4) 45%, transparent);
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 10%, transparent);
+    }
+    .group-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .group-select {
+      background: transparent; border: none; outline: none; cursor: pointer;
+      color: var(--text-color, #fff); font-size: 0.8rem; font-weight: 700;
+      padding: 0; width: 2.2em;
+    }
+    .group-clear {
+      background: none; border: none; cursor: pointer; padding: 0.25rem;
+      color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; text-decoration: underline;
+    }
+    .group-clear:hover { color: var(--text-color, #fff); }
+
+    /* --- PROJECT BREAKDOWN --- */
+    .breakdown-wrapper { width: 100%; display: flex; flex-direction: column; gap: 1.25rem; }
+    .breakdown-bar { display: flex; gap: 2px; height: 14px; width: 100%; flex-shrink: 0; }
+    .breakdown-bar.is-empty { background: var(--divider-color, #333); border-radius: 4px; }
+    .breakdown-seg {
+      height: 100%; border-radius: 3px; min-width: 3px;
+      transition: opacity 0.15s ease;
+    }
+    /* dim the rest while one project is hovered, in the bar or in the list */
+    .breakdown-bar.has-hover .breakdown-seg { opacity: 0.25; }
+    .breakdown-bar.has-hover .breakdown-seg.is-hover { opacity: 1; }
+    .breakdown-list { display: flex; flex-direction: column; overflow-y: auto; max-height: 190px; }
+    .breakdown-row, .breakdown-total {
+      display: grid; grid-template-columns: 1fr auto auto;
+      align-items: baseline; gap: 0.75rem;
+      font-size: 0.875rem;
+    }
+    .breakdown-row {
+      padding: 0.45rem 0.4rem; border-radius: 6px;
+      transition: background 0.15s ease;
+    }
+    .breakdown-row:hover { background: color-mix(in srgb, var(--text-color, #fff) 7%, transparent); }
+    .breakdown-name { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+    .breakdown-name > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .breakdown-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .breakdown-val { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .breakdown-pct {
+      color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem;
+      font-variant-numeric: tabular-nums; text-align: right; min-width: 3.4em;
+    }
+    .breakdown-total {
+      margin-top: 0.4rem; padding: 0.7rem 0.4rem 0;
+      border-top: 1px solid var(--divider-color, #333);
+      font-weight: 700;
+    }
+
+    /* --- BILLABLE LIST TOOLBAR --- */
+    .billable-toolbar {
+      padding: 0.75rem var(--s3, 1.5rem);
+      border-bottom: 1px solid var(--divider-color, #333);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+    .billable-toolbar-title { margin: 0; font-size: 1.1rem; color: var(--text-color, #fff); }
+    .billable-toolbar-controls { display: flex; align-items: center; gap: 0.5rem; }
+    /* reuse the header pill look so both controls match the rest of the app */
+    .billable-hours-box { flex: 0 0 auto; max-width: none; padding: 0.3rem 0.75rem; justify-content: flex-start; }
+    .billable-hours-box input[type=number] {
+      background: transparent; border: none; outline: none;
+      color: var(--text-color, #fff); font-size: 0.9rem; font-weight: 500;
+      width: 3.2em; text-align: left; padding: 0;
+      -moz-appearance: textfield; appearance: textfield;
+    }
+    .billable-hours-box input[type=number]::-webkit-outer-spin-button,
+    .billable-hours-box input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; }
     .badge-done { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); }
     .badge-progress { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.2); }
 
@@ -621,9 +715,9 @@
               </div>
             </div>
             <div class="chart-container" style="align-items: flex-start; padding-top: 1rem;">
-              <div class="breakdown-wrapper" id="breakdown-wrapper" style="width: 100%; display: flex; flex-direction: column; gap: 1.5rem;">
-                <div id="breakdown-bar" style="display: flex; height: 16px; border-radius: 8px; overflow: hidden; width: 100%; background: var(--divider-color, #333); flex-shrink: 0;"></div>
-                <div id="breakdown-list" style="display: flex; flex-direction: column; gap: 0.8rem; overflow-y: auto; max-height: 180px; padding-right: 0.5rem; flex: 1;"></div>
+              <div class="breakdown-wrapper" id="breakdown-wrapper">
+                <div id="breakdown-bar" class="breakdown-bar"></div>
+                <div id="breakdown-list" class="breakdown-list"></div>
               </div>
             </div>
           </div>
@@ -655,19 +749,20 @@
       <!-- VIEW 2.5: BILLABLE LIST                    -->
       <!-- ========================================== -->
       <div id="view-billableList" class="view-content no-padding hidden">
-        <div style="padding: 0.75rem var(--s3, 1.5rem); border-bottom: 1px solid var(--divider-color, #333); display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-color, #fff);" data-i18n="tab.billableList">Billable List</h3>
-          <div style="display: flex; align-items: flex-end; gap: 1.25rem;">
-            <div class="billable-field">
+        <div class="billable-toolbar">
+          <h3 class="billable-toolbar-title" data-i18n="tab.billableList">Billable List</h3>
+          <div class="billable-toolbar-controls">
+            <div class="control-box billable-hours-box">
               <label for="billable-list-hours" data-i18n="billable.hpd">Hours / day</label>
               <input type="number" id="billable-list-hours" min="0.01" step="0.25" value="8">
             </div>
             <select id="billable-table-select" class="chart-select" onchange="renderBillableTable(latestMetrics)">
-            <option value="daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
-            <option value="global" data-i18n="pie.billableGlobal">Billable (Global)</option>
+              <option value="daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
+              <option value="global" data-i18n="pie.billableGlobal">Billable (Global)</option>
             </select>
           </div>
         </div>
+        <div id="billable-groups" class="billable-groups"></div>
         <table class="details-table" id="billable-table">
           <thead id="billable-table-head">
             <!-- Headers injected by JS -->
@@ -873,6 +968,10 @@
         'table.hours': 'Hours',
         'table.toDeclare': 'To Declare',
         'table.total': 'Total',
+        'table.selection': 'Selection',
+        'table.group': 'Group',
+        'billable.groups': 'Groups',
+        'billable.ungroupAll': 'Clear groups',
         'table.status': 'Status',
         'table.noData': 'No tracked time found for this date range.',
         'badge.late': 'Late',
@@ -976,6 +1075,10 @@
         'table.hours': 'Heures',
         'table.toDeclare': 'À déclarer',
         'table.total': 'Total',
+        'table.selection': 'Sélection',
+        'table.group': 'Groupe',
+        'billable.groups': 'Groupes',
+        'billable.ungroupAll': 'Tout dégrouper',
         'table.status': 'Statut',
         'table.noData': 'Aucun temps enregistré trouvé pour cette période.',
         'badge.late': 'Hors délai',
@@ -1035,10 +1138,12 @@
     // --- UTILITIES ---
     const formatTime = (milliseconds) => {
       if (!milliseconds) return '0h 0m';
-      const totalMinutes = Math.floor(milliseconds / 60000);
+      // keep a single sign in front for negative values ("-1h 2m", not "-1h -2m")
+      const sign = milliseconds < 0 ? '-' : '';
+      const totalMinutes = Math.floor(Math.abs(milliseconds) / 60000);
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
-      return `${hours}h ${minutes}m`;
+      return `${sign}${hours}h ${minutes}m`;
     };
 
     const formatDateShort = (dateStr) => {
@@ -1195,6 +1300,7 @@
         barChartType: document.getElementById('bar-chart-select').value,
         barChartBreakdown: document.getElementById('bar-chart-breakdown').checked,
         pieChartType: document.getElementById('breakdown-chart-select').value,
+        billableGroups: { ...billableGroupOf },
       };
     };
     const saveSession = () => {
@@ -1218,6 +1324,13 @@
         }
         if (s.projectIds !== undefined) {
           pendingProjectRestore = { all: s.projectAll, ids: new Set(s.projectIds) };
+        }
+        if (s.billableGroups && typeof s.billableGroups === 'object') {
+          Object.keys(billableGroupOf).forEach(k => delete billableGroupOf[k]);
+          Object.entries(s.billableGroups).forEach(([p, gid]) => { billableGroupOf[p] = Number(gid); });
+        } else if (Array.isArray(s.billableSelection)) {
+          // sessions saved before groups existed had a single selection
+          s.billableSelection.forEach(p => { billableGroupOf[p] = 1; });
         }
     };
     const loadSession = () => {
@@ -1898,57 +2011,62 @@
       const totalVal = entries.reduce((acc, curr) => acc + curr[1], 0);
 
       if (totalVal === 0 || entries.length === 0) {
-        breakdownBar.style.background = 'var(--divider-color, #333)';
+        breakdownBar.classList.add('is-empty');
         breakdownList.innerHTML = `<div class="text-muted text-sm">${t('pie.noData')}</div>`;
         return;
       }
-      breakdownBar.style.background = 'transparent';
+      breakdownBar.classList.remove('is-empty');
 
       const fmtPct = (p) => p.toFixed(1).endsWith('.0') ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
 
-      entries.forEach(([name, val], index) => {
-        const color = (latestMetrics && latestMetrics.projectColorMap && latestMetrics.projectColorMap[name]) 
-          ? latestMetrics.projectColorMap[name] 
+      const parts = entries.map(([name, val], index) => {
+        const color = (latestMetrics && latestMetrics.projectColorMap && latestMetrics.projectColorMap[name])
+          ? latestMetrics.projectColorMap[name]
           : PIE_COLORS[index % PIE_COLORS.length];
         const percent = (val / totalVal) * 100;
-
-        // Add segment to the thick bar
-        const segment = document.createElement('div');
-        segment.style.width = `${percent}%`;
-        segment.style.height = '100%';
-        segment.style.background = color;
-        segment.title = `${name}: ${formatFn(val)}`;
-        breakdownBar.appendChild(segment);
-
-        // Add item to the list
-        const baseVal = formatFn(val);
         const displayName = name === 'Uncategorized' ? t('dynamic.uncategorized') : name;
-        const pctStr = showPct ? `<span style="color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; margin-left: 0.3rem;">${fmtPct(percent)}</span>` : '';
-        
-        breakdownList.innerHTML += `
-          <div class="breakdown-item" style="display: flex; flex-direction: column; gap: 6px;">
-            <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.875rem;">
-              <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; overflow: hidden; padding-right: 0.5rem;">
-                <div style="width: 10px; height: 10px; border-radius: 50%; background: ${color}; flex-shrink: 0;"></div>
-                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-color, #fff); font-weight: 500;">${displayName}</div>
-              </div>
-              <div style="font-weight: 600; white-space: nowrap; flex-shrink: 0;">${baseVal}${pctStr}</div>
-            </div>
-            <div style="width: 100%; height: 6px; background: rgba(128, 128, 128, 0.15); border-radius: 3px; overflow: hidden;">
-              <div style="width: ${percent}%; height: 100%; background: ${color}; border-radius: 3px;"></div>
-            </div>
-          </div>
-        `;
+        return { name, displayName, color, percent, val, index };
       });
 
-      if (showTotal) {
-        breakdownList.innerHTML += `
-          <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.875rem; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--divider-color, #333); margin-top: 0.25rem;">
-            <div style="padding-left: calc(10px + 0.5rem);">${t('pie.total')}</div>
-            <div>${formatFn(totalVal)}${showPct ? `<span style="color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; margin-left: 0.3rem;">100%</span>` : ''}</div>
-          </div>
-        `;
-      }
+      // the stacked ribbon already carries the proportions, so the rows stay
+      // a plain aligned list instead of repeating a bar each
+      breakdownBar.innerHTML = parts.map(p => `
+        <div class="breakdown-seg" data-index="${p.index}" style="width: ${p.percent}%; background: ${p.color};"
+             title="${escAttr(p.displayName)}: ${escAttr(formatFn(p.val))} (${fmtPct(p.percent)})"></div>
+      `).join('');
+
+      breakdownList.innerHTML = parts.map(p => `
+        <div class="breakdown-row" data-index="${p.index}">
+          <span class="breakdown-name">
+            <span class="breakdown-dot" style="background: ${p.color};"></span>
+            <span title="${escAttr(p.displayName)}">${escAttr(p.displayName)}</span>
+          </span>
+          <span class="breakdown-val">${formatFn(p.val)}</span>
+          ${showPct ? `<span class="breakdown-pct">${fmtPct(p.percent)}</span>` : ''}
+        </div>
+      `).join('') + (showTotal ? `
+        <div class="breakdown-total">
+          <span class="breakdown-name">
+            <span class="breakdown-dot" style="visibility: hidden;"></span>
+            <span>${t('pie.total')}</span>
+          </span>
+          <span class="breakdown-val">${formatFn(totalVal)}</span>
+          ${showPct ? `<span class="breakdown-pct">100%</span>` : ''}
+        </div>
+      ` : '');
+
+      // hovering a row highlights its slice of the ribbon, and the reverse
+      const setHover = (index) => {
+        breakdownBar.classList.toggle('has-hover', index !== null);
+        breakdownBar.querySelectorAll('.breakdown-seg').forEach(seg => {
+          seg.classList.toggle('is-hover', seg.dataset.index === String(index));
+        });
+      };
+      [...breakdownList.querySelectorAll('.breakdown-row'), ...breakdownBar.querySelectorAll('.breakdown-seg')]
+        .forEach(el => {
+          el.addEventListener('mouseenter', () => setHover(el.dataset.index));
+          el.addEventListener('mouseleave', () => setHover(null));
+        });
     };
 
     const renderTable = (entries) => {
@@ -1992,13 +2110,69 @@
 
     const billableSort = { key: 'date', dir: 'desc' };
     let billableLastOrder = null; // row keys in the order last displayed, per mode
+    // project name -> group id; projects sharing an id are summed as one line
+    const billableGroupOf = {};
+    // group ids in use, paired with the letter shown in the UI
+    const groupLetters = () => [...new Set(Object.values(billableGroupOf))]
+      .sort((a, b) => a - b)
+      .map((gid, i) => [gid, String.fromCharCode(65 + i)]);
+    const nextGroupId = () => {
+      const ids = Object.values(billableGroupOf);
+      return ids.length ? Math.max(...ids) + 1 : 1;
+    };
+
+    // the grouping bar sits above the table: one chip per project, each with a
+    // small group picker (none / an existing group / a new one)
+    const renderBillableGroups = (presentProjects, colorOf) => {
+      const bar = document.getElementById('billable-groups');
+      if (!presentProjects.length) { bar.innerHTML = ''; return; }
+      const letters = groupLetters();
+      const hasGroups = letters.length > 0;
+      bar.innerHTML =
+        `<span class="billable-groups-label" data-i18n="billable.groups">${t('billable.groups')}</span>` +
+        presentProjects.map(p => {
+          const g = billableGroupOf[p];
+          return `
+          <label class="group-chip${g != null ? ' is-grouped' : ''}">
+            <span class="breakdown-dot" style="background: ${colorOf(p)};"></span>
+            <span class="group-chip-name" title="${escAttr(p)}">${escAttr(p)}</span>
+            <select class="group-select" data-project="${escAttr(p)}">
+              <option value=""${g == null ? ' selected' : ''}>—</option>
+              ${letters.map(([gid, letter]) =>
+                `<option value="${gid}"${gid === g ? ' selected' : ''}>${letter}</option>`).join('')}
+              <option value="new">+</option>
+            </select>
+          </label>`;
+        }).join('') +
+        (hasGroups ? `<button type="button" class="group-clear">${t('billable.ungroupAll')}</button>` : '');
+
+      bar.querySelectorAll('.group-select').forEach(sel => {
+        sel.addEventListener('change', () => {
+          const p = sel.getAttribute('data-project');
+          const v = sel.value;
+          if (v === '') delete billableGroupOf[p];
+          else if (v === 'new') billableGroupOf[p] = nextGroupId();
+          else billableGroupOf[p] = Number(v);
+          renderBillableTable(latestMetrics);
+          saveSession();
+        });
+      });
+      const clearBtn = bar.querySelector('.group-clear');
+      if (clearBtn) clearBtn.addEventListener('click', () => {
+        Object.keys(billableGroupOf).forEach(k => delete billableGroupOf[k]);
+        renderBillableTable(latestMetrics);
+        saveSession();
+      });
+    };
+    const escAttr = (s) => String(s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
     const renderBillableTable = (metrics) => {
       if (!metrics) return;
       const tbody = document.getElementById('billable-table-body');
       const thead = document.getElementById('billable-table-head');
       const type = document.getElementById('billable-table-select').value;
       const listHours = parseFloat(document.getElementById('billable-list-hours').value) || 8;
-      const rows = [];
+      let rows = [];
 
       if (type === 'daily') {
         metrics.billablePerDay.labels.forEach((dateStr, i) => {
@@ -2027,24 +2201,108 @@
         }
       }
 
+      const colorOf = n => (metrics.projectColorMap && metrics.projectColorMap[n]) || '#9e9e9e';
+      const presentProjects = [...new Set(rows.map(r => r.projectName))];
+      // forget assignments for projects that dropped out of the current range
+      Object.keys(billableGroupOf).forEach(p => {
+        if (!presentProjects.includes(p)) delete billableGroupOf[p];
+      });
+      renderBillableGroups(presentProjects, colorOf);
+
+      // each group is merged everywhere in the table: one row per day instead
+      // of one per project, so the hours (and the rounding that follows) are
+      // computed on the combined series. A lone member isn't worth merging.
+      const membersByGroup = {};
+      presentProjects.forEach(p => {
+        const g = billableGroupOf[p];
+        if (g != null) (membersByGroup[g] = membersByGroup[g] || []).push(p);
+      });
+      const groupInfo = {};
+      const labelToGroup = {};
+      groupLetters().forEach(([gid, letter]) => {
+        const members = membersByGroup[gid];
+        if (!members || members.length < 2) return;
+        const label = members.join(' + ');
+        groupInfo[gid] = { label, letter, colors: members.map(colorOf) };
+        labelToGroup[label] = gid;
+      });
+      if (Object.keys(groupInfo).length) {
+        const merged = [];
+        const byKey = new Map();
+        rows.forEach(r => {
+          const gid = billableGroupOf[r.projectName];
+          if (gid == null || !groupInfo[gid]) { merged.push(r); return; }
+          const key = `${type === 'daily' ? r.date : ''}|${gid}`;
+          let g = byKey.get(key);
+          if (!g) {
+            g = { date: r.date, projectName: groupInfo[gid].label, projectColor: groupInfo[gid].colors[0],
+                  groupId: gid, billableDays: 0, timeSpent: 0, pct: 0 };
+            byKey.set(key, g);
+            merged.push(g);
+          }
+          g.billableDays += r.billableDays;
+          g.timeSpent += r.timeSpent;
+          g.pct += r.pct;
+        });
+        rows = merged;
+      }
+
       // billed hours derived from billable days and the hours-per-day input
       rows.forEach(r => { r.hours = r.billableDays * listHours; });
 
-      // "hours to declare": whole hours per day, balanced per project through
-      // cumulative rounding so the declared total equals the exact hours total.
-      // The last day of each project absorbs the remaining fraction, so it can
-      // be less round than the others. Rows are in chronological order here.
+      // "hours to declare" honours two constraints at once:
+      //  - every day totals exactly the hours/day figure across all projects
+      //  - every project's declared total equals its exact total over the range
+      // Days are walked in order; each project carries the gap between what it
+      // has been given and what it has really worked, and settles that gap
+      // exactly on its last day. Since each day is closed on the exact total,
+      // the carries always cancel out, so both constraints hold.
       if (type === 'daily') {
-        const byProject = {};
-        rows.forEach(r => { (byProject[r.projectName] = byProject[r.projectName] || []).push(r); });
-        for (const list of Object.values(byProject)) {
-          let cum = 0, declaredCum = 0;
-          list.forEach((r, i) => {
-            cum += r.hours;
-            r.declared = (i === list.length - 1) ? cum - declaredCum : Math.round(cum) - declaredCum;
-            declaredCum += r.declared;
+        const byDate = new Map();
+        rows.forEach(r => {
+          if (!byDate.has(r.date)) byDate.set(r.date, []);
+          byDate.get(r.date).push(r);
+        });
+        const lastDayOf = {};
+        rows.forEach(r => { lastDayOf[r.projectName] = r.date; });
+
+        const carry = {};
+        byDate.forEach((dayRows, date) => {
+          const dayTotal = dayRows.reduce((s, r) => s + r.hours, 0);
+          const settling = dayRows.filter(r => lastDayOf[r.projectName] === date);
+          const ongoing = dayRows.filter(r => lastDayOf[r.projectName] !== date);
+
+          settling.forEach(r => {
+            r.declared = r.hours - (carry[r.projectName] || 0);
+            carry[r.projectName] = 0;
           });
-        }
+          let left = dayTotal - settling.reduce((s, r) => s + r.declared, 0);
+
+          // biggest last: it closes the day and so absorbs any leftover fraction
+          const queue = ongoing
+            .map(r => ({ r, target: r.hours - (carry[r.projectName] || 0) }))
+            .sort((a, b) => a.target - b.target);
+          let cum = 0, given = 0;
+          queue.forEach((q, i) => {
+            cum += q.target;
+            q.r.declared = (i === queue.length - 1)
+              ? left - given
+              : Math.max(0, Math.round(cum) - given);
+            given += q.r.declared;
+            carry[q.r.projectName] = (carry[q.r.projectName] || 0) + q.r.declared - q.r.hours;
+          });
+
+          // a negative share would be nonsense: take it back from the largest
+          const negative = dayRows.filter(r => r.declared < 0);
+          negative.forEach(r => {
+            const debt = -r.declared;
+            r.declared = 0;
+            carry[r.projectName] = (carry[r.projectName] || 0) + debt;
+            const biggest = dayRows.reduce((a, b) => (b.declared > a.declared ? b : a), dayRows[0]);
+            biggest.declared -= debt;
+            carry[biggest.projectName] = (carry[biggest.projectName] || 0) - debt;
+          });
+        });
       }
 
       // in global mode the date column shows the aggregated date range
@@ -2110,37 +2368,51 @@
         return;
       }
 
-      // daily mode: per-project totals footer
+      // per-project totals (in global mode each row already is its own total)
+      const totals = {};
+      rows.forEach(r => {
+        const tot = totals[r.projectName] = totals[r.projectName] ||
+          { color: r.projectColor, billableDays: 0, hours: 0, timeSpent: 0, declared: 0 };
+        tot.billableDays += r.billableDays;
+        tot.hours += r.hours;
+        tot.timeSpent += r.timeSpent;
+        tot.declared += (r.declared || 0);
+      });
+      const totalMs = rows.reduce((s, r) => s + r.timeSpent, 0);
+
+      const dot = c => `<span style="width: 8px; height: 8px; border-radius: 50%; background: ${c}; flex-shrink: 0;"></span>`;
+      // a group shows one dot per project it merges
+      const dots = (pName, color) => labelToGroup[pName] != null
+        ? groupInfo[labelToGroup[pName]].colors.map(dot).join('')
+        : dot(color);
+      const valueCells = (v, showDeclared) => `
+            <td class="num">${v.billableDays.toFixed(2)}</td>
+            <td class="num time-cell">${formatTime(Math.round(v.hours * 3600000))}</td>
+            <td class="num">${totalMs > 0 ? ((v.timeSpent / totalMs) * 100).toFixed(1) : '0.0'}%</td>
+            <td class="num time-cell">${formatTime(v.timeSpent)}</td>
+            ${showDeclared ? `<td class="num time-cell">${formatTime(Math.round(v.declared * 3600000))}</td>` : ''}`;
+
+      const footRows = [];
+      // daily mode: one total row per project (global mode already has them)
       if (type === 'daily') {
-        const totals = {};
-        rows.forEach(r => {
-          const tot = totals[r.projectName] = totals[r.projectName] ||
-            { color: r.projectColor, billableDays: 0, hours: 0, timeSpent: 0, declared: 0 };
-          tot.billableDays += r.billableDays;
-          tot.hours += r.hours;
-          tot.timeSpent += r.timeSpent;
-          tot.declared += r.declared;
-        });
-        const totalMs = rows.reduce((s, r) => s + r.timeSpent, 0);
-        tfoot.innerHTML = Object.entries(totals)
+        Object.entries(totals)
           .sort((a, b) => b[1].timeSpent - a[1].timeSpent)
-          .map(([pName, tot], i) => `
-          <tr${i === 0 ? ' class="day-break"' : ''}>
-            <td style="white-space: nowrap; color: var(--text-color-muted, #9e9e9e); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">${t('table.total')}</td>
+          .forEach(([pName, tot], i) => {
+            const gid = labelToGroup[pName];
+            footRows.push(`
+          <tr class="${i === 0 ? 'day-break ' : ''}${gid != null ? 'selection-row' : ''}">
+            <td style="white-space: nowrap; color: var(--text-color-muted, #9e9e9e); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">${gid != null ? `${t('table.group')} ${groupInfo[gid].letter}` : t('table.total')}</td>
             <td style="font-size: 0.875rem;">
               <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${tot.color}; flex-shrink: 0;"></span>
-                <span>${pName}</span>
+                ${dots(pName, tot.color)}
+                <span>${escAttr(pName)}</span>
               </span>
             </td>
-            <td class="num">${tot.billableDays.toFixed(2)}</td>
-            <td class="num time-cell">${formatTime(Math.round(tot.hours * 3600000))}</td>
-            <td class="num">${totalMs > 0 ? ((tot.timeSpent / totalMs) * 100).toFixed(1) : '0.0'}%</td>
-            <td class="num time-cell">${formatTime(tot.timeSpent)}</td>
-            <td class="num time-cell">${formatTime(Math.round(tot.declared * 3600000))}</td>
-          </tr>
-        `).join('');
+            ${valueCells(tot, true)}
+          </tr>`);
+          });
       }
+      tfoot.innerHTML = footRows.join('');
       let prevDate = null;
       tbody.innerHTML = rows.map(entry => {
         const dayBreak = type === 'daily' && effKey === 'date' && prevDate !== null && entry.date !== prevDate;
@@ -2152,8 +2424,8 @@
               : `<td style="white-space: nowrap; color: var(--text-color-muted, #9e9e9e);">${rangeText}</td>`}
             <td style="font-size: 0.875rem;">
               <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
-                <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
+                ${dots(entry.projectName, entry.projectColor)}
+                <span style="color: var(--text-color-muted, #9e9e9e);">${escAttr(entry.projectName)}</span>
               </span>
             </td>
             <td class="num">${entry.billableDays.toFixed(2)}</td>

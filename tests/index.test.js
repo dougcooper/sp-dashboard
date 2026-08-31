@@ -389,11 +389,11 @@ describe("Date Range Reporter UI", () => {
 			window.updateProjectBreakdown();
 			// JSDOM may not retain gradient string, but legend items should appear
 			const pieLegend = document.getElementById("breakdown-list");
-			expect(pieLegend.querySelector(".breakdown-item")).not.toBeNull();
+			expect(pieLegend.querySelector(".breakdown-row")).not.toBeNull();
 
 			pieSelect.value = "late";
 			window.updateProjectBreakdown();
-			expect(pieLegend.querySelector(".breakdown-item")).not.toBeNull();
+			expect(pieLegend.querySelector(".breakdown-row")).not.toBeNull();
 		});
 
 		it("today preset is the default and produces a single-day label on the bar axis", () => {
