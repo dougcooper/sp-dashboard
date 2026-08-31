@@ -1132,6 +1132,9 @@
     let cachedProjects = [];
     let latestMetrics = null;
     const currentSort = { key: 'date', dir: 'desc' };
+    // entries in the order currently displayed, so a new sort keeps ties in
+    // their previous relative order (stable multi-level sorting)
+    let currentDetailEntries = null;
     let lastEditedBillable = 'hpd';
 
     // --- SETTINGS PERSISTENCE ---
@@ -1353,13 +1356,15 @@
             currentSort.dir = 'asc';
           }
           if (latestMetrics) {
-            const sorted = sortEntries(latestMetrics.tableEntries, currentSort.key, currentSort.dir);
-            renderTable(sorted);
+            currentDetailEntries = sortEntries(currentDetailEntries || latestMetrics.tableEntries, currentSort.key, currentSort.dir);
+            renderTable(currentDetailEntries);
           }
           updateSortIndicators();
         });
       });
     };
+    // the detailed-list header is static, attach the sort handlers exactly once
+    attachSortHandlers();
     // Base colors matching the UI kit logic (fallback hexes just in case)
     const PIE_COLORS = ['#03a9f4', '#b388ff', '#4ade80', '#f472b6', '#fbbf24', '#f87171', '#34d399', '#818cf8', '#a78bfa'];
 
@@ -1468,8 +1473,7 @@
     document.getElementById('setting-bar-date-fmt').addEventListener('change', () => { updateBarChart(); saveSettings(); });
     document.getElementById('setting-table-date-fmt').addEventListener('change', () => {
       if (!latestMetrics) return;
-      renderTable(sortEntries(latestMetrics.tableEntries, currentSort.key, currentSort.dir));
-      attachSortHandlers();
+      renderTable(currentDetailEntries || sortEntries(latestMetrics.tableEntries, currentSort.key, currentSort.dir));
       saveSettings();
     });
     document.getElementById('setting-show-pct').addEventListener('change', () => { updatePieChart(); saveSettings(); });
@@ -1567,8 +1571,9 @@
       // BEFORE any chart/table renders, so they all use the same msPerDay
       syncBillableAnchor();
 
-      // render table with current sort order
+      // render table with current sort order (fresh data resets the displayed order)
       const sortedEntries = sortEntries(metrics.tableEntries, currentSort.key, currentSort.dir);
+      currentDetailEntries = sortedEntries;
 
       document.getElementById('stat-time').innerText = formatTime(metrics.totalTimeSpent);
       
@@ -2025,6 +2030,7 @@
     };
 
     const billableSort = { key: 'date', dir: 'desc' };
+    let billableLastOrder = null; // row keys in the order last displayed, per mode
     const renderBillableTable = (metrics) => {
       if (!metrics) return;
       const tbody = document.getElementById('billable-table-body');
@@ -2090,12 +2096,22 @@
 
       // per-day date sorting only exists in daily mode
       const effKey = (type === 'global' && billableSort.key === 'date') ? 'billableDays' : billableSort.key;
+
+      // sort relative to the order currently displayed: first restore the last
+      // displayed order, then stable-sort by the new key so ties keep their
+      // previous relative order (multi-level sorting, most recent click wins)
+      const rowKey = r => type === 'daily' ? `${r.date}|${r.projectName}` : r.projectName;
+      if (billableLastOrder && billableLastOrder.mode === type) {
+        const pos = new Map(billableLastOrder.keys.map((k, i) => [k, i]));
+        rows.sort((a, b) => (pos.get(rowKey(a)) ?? 1e9) - (pos.get(rowKey(b)) ?? 1e9));
+      }
       const mul = billableSort.dir === 'asc' ? 1 : -1;
       rows.sort((a, b) => {
         const av = a[effKey], bv = b[effKey];
         const cmp = (typeof av === 'string') ? av.localeCompare(bv) : (av - bv);
-        return cmp * mul || b.timeSpent - a.timeSpent;
+        return cmp * mul;
       });
+      billableLastOrder = { mode: type, keys: rows.map(rowKey) };
 
       const billableLabelKey = type === 'daily' ? 'pie.billableDaily' : 'pie.billableGlobal';
       thead.innerHTML = `
@@ -2532,8 +2548,6 @@
         console.log("[sp-dashboard] overdue tasks with no time entries", overdueNoTime);
       }
       updateDashboardUI(metrics);
-      // attach sort click handlers after table generated
-      attachSortHandlers();
     };
 
     // expose key utilities for testing (JSDOM environment won't execute script tags normally)
