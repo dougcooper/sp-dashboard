@@ -1385,6 +1385,26 @@
       applyTranslations();
       saveSettings();
     });
+    const recomputeBillableGlobal = () => {
+      if (!latestMetrics) return;
+      const hpd = parseFloat(document.getElementById('billable-hpd').value) || 8;
+      const msPerDay = hpd * 3600000;
+      
+      latestMetrics.weeklyData.labels.forEach((dateStr, index) => {
+        const totalMs = latestMetrics.weeklyData.data[index];
+        if (totalMs > 0) {
+          const globalDaysLogged = totalMs / msPerDay;
+          latestMetrics.billableGlobalPerDay.data[index] = globalDaysLogged;
+          
+          const breakdown = latestMetrics.weeklyData.breakdown[index];
+          for (const [pName, pData] of Object.entries(breakdown)) {
+            const pct = pData.val / totalMs;
+            latestMetrics.billableGlobalPerDay.breakdown[index][pName] = { val: pct * globalDaysLogged, color: pData.color };
+          }
+        }
+      });
+    };
+
     document.getElementById('billable-days').addEventListener('input', () => {
       lastEditedBillable = 'days';
       const totalHours = latestMetrics ? latestMetrics.totalTimeSpent / 3600000 : 0;
@@ -1392,7 +1412,10 @@
       if (days > 0 && totalHours > 0) {
         document.getElementById('billable-hpd').value = (totalHours / days).toFixed(2);
       }
+      recomputeBillableGlobal();
       updatePieChart();
+      updateBarChart();
+      renderBillableTable(latestMetrics);
       saveSettings();
     });
     document.getElementById('billable-hpd').addEventListener('input', () => {
@@ -1402,7 +1425,10 @@
       if (hpd > 0 && totalHours > 0) {
         document.getElementById('billable-days').value = (totalHours / hpd).toFixed(2);
       }
+      recomputeBillableGlobal();
       updatePieChart();
+      updateBarChart();
+      renderBillableTable(latestMetrics);
       saveSettings();
     });
 
