@@ -1717,7 +1717,7 @@
           const toMonday = dow === 0 ? -6 : 1 - dow;
           const monday = new Date(d);
           monday.setDate(d.getDate() + toMonday);
-          const mondayStr = monday.toISOString().split('T')[0];
+          const mondayStr = toLocalDateStr(monday);
           const e = weekMap.get(mondayStr) || { sum: 0, count: 0, workdays: 0, breakdownSum: {} };
           e.sum += chartData.data[i];
           e.count++;
@@ -2438,7 +2438,7 @@
         // add a row for overdue or late tasks that had no time entries
         if (taskTimeInRange === 0 && (isOverdue || isLate)) {
           const badge = isLate ? t('badge.late') : t('badge.overdue');
-          const dateStr = dueStart ? new Date(dueStart).toISOString().split('T')[0] : '';
+          const dateStr = task.dueDay || '';
           metrics.tableEntries.push({
             date: dateStr,
             projectName: pName,
@@ -2613,9 +2613,19 @@
     // Apply color-scheme to date inputs based on the host app's background variable
     const applyDatePickerTheme = () => {
       const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-      const hex = bg.replace('#', '');
-      const r = parseInt(hex.slice(0, 2), 16);
-      const scheme = (Number.isNaN(r) || r < 128) ? 'dark' : 'light';
+      let isDark = true;
+      if (bg.startsWith('#')) {
+        const hex = bg.replace('#', '');
+        const r = parseInt(hex.slice(0, 2), 16);
+        isDark = Number.isNaN(r) || r < 128;
+      } else if (bg.startsWith('rgb')) {
+        const match = bg.match(/\d+/);
+        if (match) {
+          const r = parseInt(match[0], 10);
+          isDark = Number.isNaN(r) || r < 128;
+        }
+      }
+      const scheme = isDark ? 'dark' : 'light';
       document.querySelectorAll('input[type="date"]').forEach(el => { el.style.colorScheme = scheme; });
     };
     applyDatePickerTheme();
