@@ -78,9 +78,16 @@
       padding: 0.25rem 0.75rem;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 0.5rem;
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 220px;
       transition: all 0.2s ease;
     }
+    /* the custom date range box keeps its natural size */
+    #custom-date-container { flex: 0 0 auto; max-width: none; }
+    .control-box label { flex-shrink: 0; }
     
     .control-box:hover {
       background: rgba(255, 255, 255, 0.08);
@@ -154,9 +161,12 @@
     }
     
     .tab-btn.active {
+      /* tint derived from the host theme's primary color (rgba fallback for old engines) */
       background: rgba(3, 169, 244, 0.1);
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 12%, transparent);
       color: var(--c-primary, #03a9f4);
       border-color: rgba(3, 169, 244, 0.2);
+      border-color: color-mix(in srgb, var(--c-primary, #03a9f4) 25%, transparent);
     }
 
     /* --- VIEWS --- */
@@ -192,8 +202,12 @@
     .badge-red { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); }
     .badge-yellow { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.2); }
     /* sorting arrows on table headers */
-    #view-details th.sorted-asc::after { content: ' ▲'; }
-    #view-details th.sorted-desc::after { content: ' ▼'; }
+    .details-table th.sorted-asc::after { content: ' ▲'; }
+    .details-table th.sorted-desc::after { content: ' ▼'; }
+    /* visible break between two different days (date-sorted tables) */
+    .details-table tr.day-break td { border-top: 2px solid var(--text-color-muted, #9e9e9e); }
+    /* per-project totals footer */
+    .details-table tfoot td { font-weight: 600; }
     .badge-done { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); }
     .badge-progress { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.2); }
 
@@ -204,9 +218,25 @@
     .progress-fill { background: #4ade80; height: 100%; transition: width 0.5s ease-out; }
 
     /* Chart Controls */
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
     .card-title { font-size: 1.125rem; font-weight: 600; margin: 0; }
-    .chart-select { background: var(--card-bg, #1e1e1e); color: var(--text-color, #fff); border: 1px solid var(--divider-color, #333); border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+    .chart-select {
+      -webkit-appearance: none; appearance: none;
+      background: var(--card-bg, #1e1e1e) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239e9e9e' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+      background-size: 9px 6px;
+      color: var(--text-color, #fff);
+      border: 1px solid var(--divider-color, #333);
+      border-radius: 999px;
+      padding: 0.3rem 1.6rem 0.3rem 0.75rem;
+      font-size: 0.75rem;
+      width: 160px;
+      flex-shrink: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+    .chart-select:hover { border-color: var(--text-color-muted, #666); }
+    .chart-select:focus { outline: none; border-color: var(--c-primary, #03a9f4); }
 
     /* --- NATIVE CHARTS --- */
     .chart-card { display: flex; flex-direction: column; }
@@ -267,6 +297,8 @@
     .details-table tr:last-child td { border-bottom: none; }
     .details-table tr:hover { background: rgba(255, 255, 255, 0.03); }
     .time-cell { font-family: monospace; font-size: 0.9rem; }
+    /* numeric columns: right-aligned so values line up under their header */
+    .details-table th.num, .details-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
 
     /* --- SETTINGS VIEW --- */
     .settings-section { margin-bottom: 2rem; }
@@ -323,11 +355,14 @@
       cursor: pointer;
       padding: 0;
       text-align: left;
-      min-width: 130px;
+      flex: 1;
+      min-width: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 0.5rem;
+      white-space: nowrap;
+      overflow: hidden;
     }
     .project-filter-btn::after {
       content: '▾';
@@ -347,8 +382,10 @@
     }
     .chart-toggle.active {
       background: rgba(3, 169, 244, 0.15);
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 15%, transparent);
       color: var(--c-primary, #03a9f4);
       border-color: rgba(3, 169, 244, 0.5);
+      border-color: color-mix(in srgb, var(--c-primary, #03a9f4) 50%, transparent);
     }
 
     /* --- BILLABLE DAYS PANEL --- */
@@ -415,6 +452,7 @@
     .project-filter-option:hover { background: rgba(255,255,255,0.05); }
     .project-filter-option.selected {
       background: rgba(3, 169, 244, 0.15);
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 15%, transparent);
       color: var(--c-primary, #03a9f4);
     }
     .project-filter-option input[type=checkbox] { accent-color: var(--c-primary, #03a9f4); cursor: pointer; }
@@ -447,8 +485,8 @@
         <!-- Preset Dropdown -->
         <div class="control-box">
           <label for="date-preset" data-i18n="header.period">Period</label>
-          <div style="position: relative; display: flex; align-items: center;">
-            <select id="date-preset" style="appearance: none; -webkit-appearance: none; background: transparent; padding-right: 1rem; width: 100%;">
+          <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 0;">
+            <select id="date-preset" style="appearance: none; -webkit-appearance: none; background: transparent; padding-right: 1rem; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
               <option value="today" selected>Today</option>
               <option value="week">Past Week</option>
               <option value="month">Past Month</option>
@@ -552,7 +590,7 @@
                     <span class="s-track"></span>
                   </div>
                 </label>
-                <select id="bar-chart-select" class="chart-select" style="width:auto">
+                <select id="bar-chart-select" class="chart-select">
                   <option value="time" data-i18n="bar.time">Time tracked</option>
                   <option value="completed" selected data-i18n="bar.completed">Completed</option>
                   <option value="overdue" data-i18n="bar.overdue">Overdue</option>
@@ -571,7 +609,7 @@
           <div class="chart-card">
             <div class="card-header">
               <h3 class="card-title" data-i18n="pie.title">Project Breakdown</h3>
-              <select id="pie-chart-select" class="chart-select" style="width:auto">
+              <select id="pie-chart-select" class="chart-select">
                 <option value="time">Time tracked</option>
                 <option value="completed" selected>Completed</option>
                 <option value="overdue">Overdue</option>
@@ -630,12 +668,18 @@
       <!-- VIEW 2.5: BILLABLE LIST                    -->
       <!-- ========================================== -->
       <div id="view-billableList" class="view-content no-padding hidden">
-        <div style="padding: 1rem; border-bottom: 1px solid var(--divider-color, #333); display: flex; justify-content: space-between; align-items: center;">
+        <div style="padding: 0.75rem var(--s3, 1.5rem); border-bottom: 1px solid var(--divider-color, #333); display: flex; justify-content: space-between; align-items: center;">
           <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-color, #fff);" data-i18n="tab.billableList">Billable List</h3>
-          <select id="billable-table-select" class="chart-select" style="width:auto" onchange="renderBillableTable(latestMetrics)">
+          <div style="display: flex; align-items: flex-end; gap: 1.25rem;">
+            <div class="billable-field">
+              <label for="billable-list-hours" data-i18n="billable.hpd">Hours / day</label>
+              <input type="number" id="billable-list-hours" min="0.01" step="0.25" value="8">
+            </div>
+            <select id="billable-table-select" class="chart-select" onchange="renderBillableTable(latestMetrics)">
             <option value="daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
             <option value="global" data-i18n="pie.billableGlobal">Billable (Global)</option>
-          </select>
+            </select>
+          </div>
         </div>
         <table class="details-table" id="billable-table">
           <thead id="billable-table-head">
@@ -644,6 +688,9 @@
           <tbody id="billable-table-body">
             <!-- Rows injected by JS -->
           </tbody>
+          <tfoot id="billable-table-foot">
+            <!-- Per-project totals injected by JS (daily mode) -->
+          </tfoot>
         </table>
       </div>
 
@@ -660,7 +707,7 @@
                 <div class="setting-label" data-i18n="settings.language">Language</div>
                 <div class="setting-desc" data-i18n="settings.languageDesc">Interface language</div>
               </div>
-              <select id="setting-language" class="chart-select" style="width:auto;flex-shrink:0">
+              <select id="setting-language" class="chart-select">
                 <option value="en">English</option>
                 <option value="fr">Français</option>
               </select>
@@ -675,7 +722,7 @@
                 <div class="setting-label" data-i18n="settings.grouping">Grouping</div>
                 <div class="setting-desc" data-i18n="settings.groupingDesc">Time grain used on the x-axis</div>
               </div>
-              <select id="setting-bar-grouping" class="chart-select" style="width:auto;flex-shrink:0">
+              <select id="setting-bar-grouping" class="chart-select">
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
@@ -687,7 +734,7 @@
                 <div class="setting-label" data-i18n="settings.measure">Measure</div>
                 <div class="setting-desc" data-i18n="settings.measureDesc">How values are computed per period</div>
               </div>
-              <select id="setting-bar-aggregation" class="chart-select" style="width:auto;flex-shrink:0;max-width:160px">
+              <select id="setting-bar-aggregation" class="chart-select">
                 <option value="total">Total</option>
                 <option value="avg-per-day">Avg / Calendar Day</option>
                 <option value="avg-per-workday">Avg / Workday (M–F)</option>
@@ -699,7 +746,7 @@
                 <div class="setting-label" data-i18n="settings.dateAxisFmt">Date axis format</div>
                 <div class="setting-desc" data-i18n="settings.dateAxisFmtDesc">Format shown below each bar (applies to daily and weekly groupings)</div>
               </div>
-              <select id="setting-bar-date-fmt" class="chart-select" style="width:auto;flex-shrink:0">
+              <select id="setting-bar-date-fmt" class="chart-select">
                 <option value="MM-DD">MM-DD (02-22)</option>
                 <option value="DD/MM">DD/MM (22/02)</option>
               </select>
@@ -715,7 +762,7 @@
                 <div class="setting-label" data-i18n="settings.tableDate">Detailed List - date column</div>
                 <div class="setting-desc" data-i18n="settings.tableDateDesc">Format of the date column in the detailed list</div>
               </div>
-              <select id="setting-table-date-fmt" class="chart-select" style="width:auto;flex-shrink:0">
+              <select id="setting-table-date-fmt" class="chart-select">
                 <option value="en-US">Feb 22, 2026</option>
                 <option value="DD/MM/YYYY">22/02/2026</option>
               </select>
@@ -836,6 +883,9 @@
         'table.project': 'Project',
         'table.task': 'Task',
         'table.timeSpent': 'Time Spent',
+        'table.hours': 'Hours',
+        'table.toDeclare': 'To Declare',
+        'table.total': 'Total',
         'table.status': 'Status',
         'table.noData': 'No tracked time found for this date range.',
         'badge.late': 'Late',
@@ -936,6 +986,9 @@
         'table.project': 'Projet',
         'table.task': 'Tâche',
         'table.timeSpent': 'Temps passé',
+        'table.hours': 'Heures',
+        'table.toDeclare': 'À déclarer',
+        'table.total': 'Total',
         'table.status': 'Statut',
         'table.noData': 'Aucun temps enregistré trouvé pour cette période.',
         'badge.late': 'Hors délai',
@@ -1083,9 +1136,7 @@
 
     // --- SETTINGS PERSISTENCE ---
     const SETTINGS_KEY = 'sp-dashboard-settings';
-    const saveSettings = () => {
-      try {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+    const getSettingsPayload = () => ({
           barGrouping:       document.getElementById('setting-bar-grouping').value,
           barAggregation:    document.getElementById('setting-bar-aggregation').value,
           barDateFmt:        document.getElementById('setting-bar-date-fmt').value,
@@ -1096,18 +1147,20 @@
           catCompleted:      document.getElementById('cat-completed').checked,
           catOverdue:        document.getElementById('cat-overdue').checked,
           catLate:           document.getElementById('cat-late').checked,
-          catBillable:       document.getElementById('cat-billable').checked,
+          catBillableGlobal: document.getElementById('cat-billable-global').checked,
+          catBillableDaily:  document.getElementById('cat-billable-daily').checked,
           billableHpd:       document.getElementById('billable-hpd').value,
+          billableDays:      document.getElementById('billable-days').value,
+          billableListHours: document.getElementById('billable-list-hours').value,
           lastEditedBillable,
           lang:              currentLang,
-        }));
-      } catch (e) { /* localStorage unavailable in some iframe contexts */ }
+    });
+    const saveSettings = () => {
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(getSettingsPayload())); }
+      catch (e) { /* localStorage unavailable in some iframe contexts */ }
+      schedulePersistSynced();
     };
-    const loadSettings = () => {
-      try {
-        const raw = localStorage.getItem(SETTINGS_KEY);
-        if (!raw) return;
-        const s = JSON.parse(raw);
+    const applySettings = (s) => {
         if (s.barGrouping)                document.getElementById('setting-bar-grouping').value    = s.barGrouping;
         if (s.barAggregation)             document.getElementById('setting-bar-aggregation').value = s.barAggregation;
         if (s.barDateFmt)                 document.getElementById('setting-bar-date-fmt').value    = s.barDateFmt;
@@ -1118,10 +1171,18 @@
         if (s.catCompleted !== undefined) document.getElementById('cat-completed').checked        = s.catCompleted;
         if (s.catOverdue   !== undefined) document.getElementById('cat-overdue').checked          = s.catOverdue;
         if (s.catLate      !== undefined) document.getElementById('cat-late').checked             = s.catLate;
-        if (s.catBillable  !== undefined) document.getElementById('cat-billable').checked         = s.catBillable;
+        if (s.catBillableGlobal !== undefined) document.getElementById('cat-billable-global').checked = s.catBillableGlobal;
+        if (s.catBillableDaily  !== undefined) document.getElementById('cat-billable-daily').checked  = s.catBillableDaily;
         if (s.billableHpd)                document.getElementById('billable-hpd').value           = s.billableHpd;
+        if (s.billableDays)               document.getElementById('billable-days').value          = s.billableDays;
+        if (s.billableListHours)          document.getElementById('billable-list-hours').value    = s.billableListHours;
         if (s.lastEditedBillable)         lastEditedBillable = s.lastEditedBillable;
         if (s.lang) { currentLang = s.lang; document.getElementById('setting-language').value = s.lang; }
+    };
+    const loadSettings = () => {
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (raw) applySettings(JSON.parse(raw));
       } catch (e) { /* ignore parse errors */ }
     };
 
@@ -1129,31 +1190,30 @@
     const SESSION_KEY = 'sp-dashboard-session';
     let pendingProjectRestore = null; // applied inside updateProjectFilter on next call
 
+    const getSessionPayload = () => {
+      const dropdown = document.getElementById('project-filter-dropdown');
+      const allCb = dropdown.querySelector('input[value="all"]');
+      const isAll = !allCb || allCb.checked;
+      const selectedIds = isAll ? [] :
+        [...dropdown.querySelectorAll('input[type=checkbox]:not([value="all"]):checked')].map(cb => cb.value);
+      return {
+        datePreset:   document.getElementById('date-preset').value,
+        dateFrom:     document.getElementById('date-from').value,
+        dateTo:       document.getElementById('date-to').value,
+        projectAll:   isAll,
+        projectIds:   selectedIds,
+        barChartType: document.getElementById('bar-chart-select').value,
+        barChartBreakdown: document.getElementById('bar-chart-breakdown').checked,
+        pieChartType: document.getElementById('pie-chart-select').value,
+      };
+    };
     const saveSession = () => {
-      try {
-        const dropdown = document.getElementById('project-filter-dropdown');
-        const allCb = dropdown.querySelector('input[value="all"]');
-        const isAll = !allCb || allCb.checked;
-        const selectedIds = isAll ? [] :
-          [...dropdown.querySelectorAll('input[type=checkbox]:not([value="all"]):checked')].map(cb => cb.value);
-        localStorage.setItem(SESSION_KEY, JSON.stringify({
-          datePreset:   document.getElementById('date-preset').value,
-          dateFrom:     document.getElementById('date-from').value,
-          dateTo:       document.getElementById('date-to').value,
-          projectAll:   isAll,
-          projectIds:   selectedIds,
-          barChartType: document.getElementById('bar-chart-select').value,
-          barChartBreakdown: document.getElementById('bar-chart-breakdown').checked,
-          pieChartType: document.getElementById('pie-chart-select').value,
-        }));
-      } catch (e) { /* ignore */ }
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify(getSessionPayload())); }
+      catch (e) { /* ignore */ }
+      schedulePersistSynced();
     };
 
-    const loadSession = () => {
-      try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        if (!raw) return;
-        const s = JSON.parse(raw);
+    const applySession = (s) => {
         if (s.datePreset) {
           document.getElementById('date-preset').value = s.datePreset;
           if (s.datePreset === 'custom') document.getElementById('custom-date-container').classList.remove('hidden');
@@ -1169,13 +1229,49 @@
         if (s.projectIds !== undefined) {
           pendingProjectRestore = { all: s.projectAll, ids: new Set(s.projectIds) };
         }
+    };
+    const loadSession = () => {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (raw) applySession(JSON.parse(raw));
       } catch (e) { /* ignore */ }
+    };
+
+    // --- SYNCED PERSISTENCE (SuperProductivity plugin API) ---
+    // localStorage does not reliably survive SP's sandboxed iframe reloads, so
+    // settings and view state are also persisted through the plugin API
+    let persistSyncedTimer = null;
+    const schedulePersistSynced = () => {
+      if (!window.PluginAPI || !window.PluginAPI.persistDataSynced) return;
+      clearTimeout(persistSyncedTimer);
+      persistSyncedTimer = setTimeout(() => {
+        try {
+          window.PluginAPI.persistDataSynced(JSON.stringify({
+            settings: getSettingsPayload(),
+            session: getSessionPayload(),
+          }));
+        } catch (e) { console.warn('[sp-dashboard] persistDataSynced failed', e); }
+      }, 300);
+    };
+    const loadSyncedPersisted = async () => {
+      if (!window.PluginAPI || !window.PluginAPI.loadSyncedData) return null;
+      try {
+        const raw = await window.PluginAPI.loadSyncedData();
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        console.warn('[sp-dashboard] loadSyncedData failed', e);
+        return null;
+      }
     };
 
     const resetAll = () => {
       try {
         localStorage.removeItem(SETTINGS_KEY);
         localStorage.removeItem(SESSION_KEY);
+      } catch (e) { /* ignore */ }
+      try {
+        if (window.PluginAPI && window.PluginAPI.persistDataSynced) window.PluginAPI.persistDataSynced('');
       } catch (e) { /* ignore */ }
       // Settings defaults
       document.getElementById('setting-bar-grouping').value      = 'daily';
@@ -1184,11 +1280,12 @@
       document.getElementById('setting-table-date-fmt').value   = 'en-US';
       document.getElementById('setting-show-pct').checked       = false;
       document.getElementById('setting-show-total').checked     = true;
-      ['cat-time','cat-completed','cat-overdue','cat-late','cat-billable'].forEach(id => {
+      ['cat-time','cat-completed','cat-overdue','cat-late','cat-billable-global','cat-billable-daily'].forEach(id => {
         document.getElementById(id).checked = true;
       });
       document.getElementById('billable-hpd').value = '8';
       document.getElementById('billable-days').value = '';
+      document.getElementById('billable-list-hours').value = '8';
       lastEditedBillable = 'hpd';
       currentLang = 'en';
       document.getElementById('setting-language').value = 'en';
@@ -1385,11 +1482,24 @@
       applyTranslations();
       saveSettings();
     });
+    document.getElementById('billable-list-hours').addEventListener('input', () => {
+      renderBillableTable(latestMetrics);
+      saveSettings();
+    });
+    // ms per billable day, exact: when "days" is the anchor, derive from the exact
+    // total instead of the rounded hpd shown in the input (avoids 19.99/20.01 drift)
+    const getEffectiveMsPerDay = () => {
+      const days = parseFloat(document.getElementById('billable-days').value);
+      if (lastEditedBillable === 'days' && days > 0 && latestMetrics && latestMetrics.totalTimeSpent > 0) {
+        return latestMetrics.totalTimeSpent / days;
+      }
+      const hpd = parseFloat(document.getElementById('billable-hpd').value) || 8;
+      return hpd * 3600000;
+    };
     const recomputeBillableGlobal = () => {
       if (!latestMetrics) return;
-      const hpd = parseFloat(document.getElementById('billable-hpd').value) || 8;
-      const msPerDay = hpd * 3600000;
-      
+      const msPerDay = getEffectiveMsPerDay();
+
       latestMetrics.weeklyData.labels.forEach((dateStr, index) => {
         const totalMs = latestMetrics.weeklyData.data[index];
         if (totalMs > 0) {
@@ -1403,6 +1513,24 @@
           }
         }
       });
+    };
+
+    // keep the anchor input fixed, derive the other from the current total,
+    // then recompute the global billable data so pie/bar/table stay consistent
+    const syncBillableAnchor = () => {
+      if (!latestMetrics) return;
+      const totalHours = latestMetrics.totalTimeSpent / 3600000;
+      const hpdInput = document.getElementById('billable-hpd');
+      const daysInput = document.getElementById('billable-days');
+      if (!hpdInput.value && !daysInput.value) hpdInput.value = '8';
+      const days = parseFloat(daysInput.value);
+      if (lastEditedBillable === 'days' && days > 0) {
+        if (totalHours > 0) hpdInput.value = (totalHours / days).toFixed(2);
+      } else {
+        const hpd = parseFloat(hpdInput.value) || 8;
+        daysInput.value = totalHours > 0 ? (totalHours / hpd).toFixed(2) : '';
+      }
+      recomputeBillableGlobal();
     };
 
     document.getElementById('billable-days').addEventListener('input', () => {
@@ -1435,6 +1563,9 @@
     // --- RENDER LOGIC ---
     const updateDashboardUI = (metrics) => {
       latestMetrics = metrics;
+      // sync days/hpd from the anchor input and recompute billable data
+      // BEFORE any chart/table renders, so they all use the same msPerDay
+      syncBillableAnchor();
 
       // render table with current sort order
       const sortedEntries = sortEntries(metrics.tableEntries, currentSort.key, currentSort.dir);
@@ -1517,25 +1648,20 @@
       const billablePanel = document.getElementById('billable-panel');
 
       if (type === 'billable-global' || type === 'billable-daily') {
-        billablePanel.classList.remove('hidden');
-        const totalHours = latestMetrics.totalTimeSpent / 3600000;
-        const hpdInput = document.getElementById('billable-hpd');
-        const daysInput = document.getElementById('billable-days');
-        if (!hpdInput.value && !daysInput.value) hpdInput.value = '8';
-        const hpd = parseFloat(hpdInput.value) || 8;
-        const days = parseFloat(daysInput.value);
-        // keep the "anchor" input fixed, derive the other from total hours
-        if (lastEditedBillable === 'hpd') {
-          daysInput.value = totalHours > 0 ? (totalHours / hpd).toFixed(2) : '';
-        } else if (days > 0) {
-          hpdInput.value = totalHours > 0 ? (totalHours / days).toFixed(2) : hpdInput.value;
+        // the days/hpd inputs only drive the global mode; daily mode counts
+        // each active day as 1 regardless, so the panel is noise there
+        if (type === 'billable-global') {
+          billablePanel.classList.remove('hidden');
+          // inputs are kept in sync by syncBillableAnchor / the input listeners
+          const currentHpd = getEffectiveMsPerDay() / 3600000;
+          document.getElementById('billable-total-display').textContent =
+            `${formatTime(latestMetrics.totalTimeSpent)} ${t('billable.total')}`;
+          document.getElementById('billable-avg-display').textContent =
+            `${formatTime(Math.round(currentHpd * 3600000))} ${t('billable.dayAvg')}`;
+        } else {
+          billablePanel.classList.add('hidden');
         }
-        const currentHpd = parseFloat(hpdInput.value) || 8;
-        document.getElementById('billable-total-display').textContent =
-          `${formatTime(latestMetrics.totalTimeSpent)} ${t('billable.total')}`;
-        document.getElementById('billable-avg-display').textContent =
-          `${formatTime(Math.round(currentHpd * 3600000))} ${t('billable.dayAvg')}`;
-        
+
         // Sum billable days per project from daily data
         const projectBillableData = {};
         const sourceData = type === 'billable-global' ? latestMetrics.billableGlobalPerDay : latestMetrics.billablePerDay;
@@ -1867,8 +1993,12 @@
         return;
       }
 
-      tbody.innerHTML = entries.map(entry => `
-        <tr>
+      let prevDate = null;
+      tbody.innerHTML = entries.map(entry => {
+        const dayBreak = currentSort.key === 'date' && prevDate !== null && entry.date !== prevDate;
+        prevDate = entry.date;
+        return `
+        <tr${dayBreak ? ' class="day-break"' : ''}>
           <td style="white-space: nowrap;">${formatTableDate(entry.date)}</td>
           <td style="font-size: 0.875rem;">
             <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
@@ -1890,26 +2020,20 @@
             }
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     };
 
+    const billableSort = { key: 'date', dir: 'desc' };
     const renderBillableTable = (metrics) => {
       if (!metrics) return;
       const tbody = document.getElementById('billable-table-body');
       const thead = document.getElementById('billable-table-head');
       const type = document.getElementById('billable-table-select').value;
+      const listHours = parseFloat(document.getElementById('billable-list-hours').value) || 8;
       const rows = [];
 
       if (type === 'daily') {
-        thead.innerHTML = `
-          <tr>
-            <th data-i18n="table.date">${t('table.date')}</th>
-            <th data-i18n="table.project">${t('table.project')}</th>
-            <th data-i18n="table.timeSpent">${t('table.timeSpent')}</th>
-            <th>%</th>
-            <th data-i18n="pie.billableDaily">${t('pie.billableDaily')}</th>
-          </tr>
-        `;
         metrics.billablePerDay.labels.forEach((dateStr, i) => {
           const totalMs = metrics.weeklyData.data[i];
           if (totalMs > 0) {
@@ -1917,74 +2041,152 @@
             const billableBreakdown = metrics.billablePerDay.breakdown[i];
             for (const [pName, pData] of Object.entries(dailyBreakdown)) {
               const ms = pData.val;
-              const pct = (ms / totalMs) * 100;
-              const billableDays = billableBreakdown[pName] ? billableBreakdown[pName].val : 0;
               rows.push({
                 date: dateStr, projectName: pName, projectColor: pData.color,
-                timeSpent: ms, pct: pct, billableDays: billableDays
+                timeSpent: ms, pct: (ms / totalMs) * 100,
+                billableDays: billableBreakdown[pName] ? billableBreakdown[pName].val : 0
               });
             }
           }
         });
-        rows.sort((a, b) => b.date.localeCompare(a.date) || b.timeSpent - a.timeSpent);
-        if (rows.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = rows.map(entry => `
-          <tr>
-            <td style="white-space: nowrap;">${formatTableDate(entry.date)}</td>
-            <td style="font-size: 0.875rem;">
-              <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
-                <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
-              </span>
-            </td>
-            <td class="time-cell">${formatTime(entry.timeSpent)}</td>
-            <td>${entry.pct.toFixed(1)}%</td>
-            <td>${entry.billableDays.toFixed(2)}</td>
-          </tr>
-        `).join('');
       } else {
-        thead.innerHTML = `
-          <tr>
-            <th data-i18n="table.project">${t('table.project')}</th>
-            <th data-i18n="table.timeSpent">${t('table.timeSpent')}</th>
-            <th>%</th>
-            <th data-i18n="pie.billableGlobal">${t('pie.billableGlobal')}</th>
-          </tr>
-        `;
         const totalMs = metrics.totalTimeSpent;
-        const hpd = parseFloat(document.getElementById('billable-hpd').value) || 8;
-        const msPerDay = hpd * 3600000;
+        const msPerDay = getEffectiveMsPerDay();
         for (const [pName, ms] of Object.entries(metrics.projectData)) {
-          const pct = (ms / totalMs) * 100;
-          const globalDays = ms / msPerDay;
-          const pColor = metrics.projectColorMap[pName] || '#fff';
           rows.push({
-            projectName: pName, projectColor: pColor,
-            timeSpent: ms, pct: pct, billableDays: globalDays
+            projectName: pName, projectColor: metrics.projectColorMap[pName] || '#fff',
+            timeSpent: ms, pct: (ms / totalMs) * 100, billableDays: ms / msPerDay
           });
         }
-        rows.sort((a, b) => b.timeSpent - a.timeSpent);
-        if (rows.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
-          return;
+      }
+
+      // billed hours derived from billable days and the hours-per-day input
+      rows.forEach(r => { r.hours = r.billableDays * listHours; });
+
+      // "hours to declare": whole hours per day, balanced per project through
+      // cumulative rounding so the declared total equals the exact hours total.
+      // The last day of each project absorbs the remaining fraction, so it can
+      // be less round than the others. Rows are in chronological order here.
+      if (type === 'daily') {
+        const byProject = {};
+        rows.forEach(r => { (byProject[r.projectName] = byProject[r.projectName] || []).push(r); });
+        for (const list of Object.values(byProject)) {
+          let cum = 0, declaredCum = 0;
+          list.forEach((r, i) => {
+            cum += r.hours;
+            r.declared = (i === list.length - 1) ? cum - declaredCum : Math.round(cum) - declaredCum;
+            declaredCum += r.declared;
+          });
         }
-        tbody.innerHTML = rows.map(entry => `
-          <tr>
+      }
+
+      // in global mode the date column shows the aggregated date range
+      const rangeLabels = metrics.billablePerDay.labels;
+      const rangeText = rangeLabels.length
+        ? (rangeLabels.length === 1
+            ? formatTableDate(rangeLabels[0])
+            : `${formatTableDate(rangeLabels[0])} – ${formatTableDate(rangeLabels[rangeLabels.length - 1])}`)
+        : '';
+
+      // per-day date sorting only exists in daily mode
+      const effKey = (type === 'global' && billableSort.key === 'date') ? 'billableDays' : billableSort.key;
+      const mul = billableSort.dir === 'asc' ? 1 : -1;
+      rows.sort((a, b) => {
+        const av = a[effKey], bv = b[effKey];
+        const cmp = (typeof av === 'string') ? av.localeCompare(bv) : (av - bv);
+        return cmp * mul || b.timeSpent - a.timeSpent;
+      });
+
+      const billableLabelKey = type === 'daily' ? 'pie.billableDaily' : 'pie.billableGlobal';
+      thead.innerHTML = `
+        <tr>
+          ${type === 'daily'
+            ? `<th data-sort="date" data-i18n="table.date">${t('table.date')}</th>`
+            : `<th data-i18n="table.date">${t('table.date')}</th>`}
+          <th data-sort="projectName" data-i18n="table.project">${t('table.project')}</th>
+          <th class="num" data-sort="billableDays" data-i18n="${billableLabelKey}">${t(billableLabelKey)}</th>
+          <th class="num" data-sort="hours" data-i18n="table.hours">${t('table.hours')}</th>
+          <th class="num" data-sort="pct">%</th>
+          <th class="num" data-sort="timeSpent" data-i18n="table.timeSpent">${t('table.timeSpent')}</th>
+          ${type === 'daily' ? `<th class="num" data-sort="declared" data-i18n="table.toDeclare">${t('table.toDeclare')}</th>` : ''}
+        </tr>
+      `;
+      thead.querySelectorAll('th[data-sort]').forEach(th => {
+        const key = th.getAttribute('data-sort');
+        th.style.cursor = 'pointer';
+        if (key === effKey) th.classList.add(billableSort.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        th.addEventListener('click', () => {
+          if (billableSort.key === key) {
+            billableSort.dir = billableSort.dir === 'asc' ? 'desc' : 'asc';
+          } else {
+            billableSort.key = key;
+            billableSort.dir = key === 'date' ? 'desc' : 'asc';
+          }
+          renderBillableTable(latestMetrics);
+        });
+      });
+
+      const tfoot = document.getElementById('billable-table-foot');
+      tfoot.innerHTML = '';
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${type === 'daily' ? 7 : 6}" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
+        return;
+      }
+
+      // daily mode: per-project totals footer
+      if (type === 'daily') {
+        const totals = {};
+        rows.forEach(r => {
+          const tot = totals[r.projectName] = totals[r.projectName] ||
+            { color: r.projectColor, billableDays: 0, hours: 0, timeSpent: 0, declared: 0 };
+          tot.billableDays += r.billableDays;
+          tot.hours += r.hours;
+          tot.timeSpent += r.timeSpent;
+          tot.declared += r.declared;
+        });
+        const totalMs = rows.reduce((s, r) => s + r.timeSpent, 0);
+        tfoot.innerHTML = Object.entries(totals)
+          .sort((a, b) => b[1].timeSpent - a[1].timeSpent)
+          .map(([pName, tot], i) => `
+          <tr${i === 0 ? ' class="day-break"' : ''}>
+            <td style="white-space: nowrap; color: var(--text-color-muted, #9e9e9e); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">${t('table.total')}</td>
             <td style="font-size: 0.875rem;">
               <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
-                <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${tot.color}; flex-shrink: 0;"></span>
+                <span>${pName}</span>
               </span>
             </td>
-            <td class="time-cell">${formatTime(entry.timeSpent)}</td>
-            <td>${entry.pct.toFixed(1)}%</td>
-            <td>${entry.billableDays.toFixed(2)}</td>
+            <td class="num">${tot.billableDays.toFixed(2)}</td>
+            <td class="num time-cell">${formatTime(Math.round(tot.hours * 3600000))}</td>
+            <td class="num">${totalMs > 0 ? ((tot.timeSpent / totalMs) * 100).toFixed(1) : '0.0'}%</td>
+            <td class="num time-cell">${formatTime(tot.timeSpent)}</td>
+            <td class="num time-cell">${formatTime(Math.round(tot.declared * 3600000))}</td>
           </tr>
         `).join('');
       }
+      let prevDate = null;
+      tbody.innerHTML = rows.map(entry => {
+        const dayBreak = type === 'daily' && effKey === 'date' && prevDate !== null && entry.date !== prevDate;
+        prevDate = entry.date;
+        return `
+          <tr${dayBreak ? ' class="day-break"' : ''}>
+            ${type === 'daily'
+              ? `<td style="white-space: nowrap;">${formatTableDate(entry.date)}</td>`
+              : `<td style="white-space: nowrap; color: var(--text-color-muted, #9e9e9e);">${rangeText}</td>`}
+            <td style="font-size: 0.875rem;">
+              <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
+                <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
+              </span>
+            </td>
+            <td class="num">${entry.billableDays.toFixed(2)}</td>
+            <td class="num time-cell">${formatTime(Math.round(entry.hours * 3600000))}</td>
+            <td class="num">${entry.pct.toFixed(1)}%</td>
+            <td class="num time-cell">${formatTime(entry.timeSpent)}</td>
+            ${type === 'daily' ? `<td class="num time-cell" style="font-weight: 600;">${formatTime(Math.round(entry.declared * 3600000))}</td>` : ''}
+          </tr>
+        `;
+      }).join('');
     };
     // helper for normalizing a task's dueDay to day boundaries (UTC)
     const getDueBounds = (task) => {
@@ -2425,9 +2627,19 @@
     applyTranslations();
 
     // Initial Bootstrap & Fallback Data Generation
-    setTimeout(() => {
+    setTimeout(async () => {
       console.log("[sp-dashboard] bootstrap timeout fired; PluginAPI exists?", !!window.PluginAPI);
       if (window.PluginAPI) {
+        // restore settings/view state persisted through the plugin API
+        // (same ordering as the localStorage boot path above)
+        const synced = await loadSyncedPersisted();
+        if (synced) {
+          if (synced.settings) applySettings(synced.settings);
+          syncPieCategories();
+          syncAggRow();
+          if (synced.session) applySession(synced.session);
+          applyTranslations();
+        }
         pullDataFromSP();
       } else {
         console.log("[sp-dashboard] No PluginAPI detected. Loading mock data...");
