@@ -1932,7 +1932,9 @@
       const projectMap = {};
       projectsArr.forEach(p => { projectMap[p.id] = p.title; });
       const projectColorMap = {};
-      projectsArr.forEach((p, i) => { projectColorMap[p.title] = PIE_COLORS[i % PIE_COLORS.length]; });
+      projectsArr.forEach((p, i) => {
+        projectColorMap[p.title] = (p.theme && p.theme.primary) || p.themeColor || p.color || PIE_COLORS[i % PIE_COLORS.length];
+      });
       projectColorMap.Uncategorized = PIE_COLORS[projectsArr.length % PIE_COLORS.length];
 
       // Apply project filter
