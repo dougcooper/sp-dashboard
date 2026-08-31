@@ -503,7 +503,7 @@ describe("Date Range Reporter UI", () => {
 			window.updatePieChart();
 			expect(billablePanel.classList.contains("hidden")).toBe(true);
 
-			pieSelect.value = "billable";
+			pieSelect.value = "billable-global";
 			window.updatePieChart();
 			expect(billablePanel.classList.contains("hidden")).toBe(false);
 

@@ -557,7 +557,8 @@
                   <option value="completed" selected data-i18n="bar.completed">Completed</option>
                   <option value="overdue" data-i18n="bar.overdue">Overdue</option>
                   <option value="late" data-i18n="bar.late">Late</option>
-                  <option value="billable" data-i18n="pie.billable">Work Days</option>
+                  <option value="billable-global" data-i18n="pie.billableGlobal">Billable (Global)</option>
+                  <option value="billable-daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
                 </select>
               </div>
             </div>
@@ -573,8 +574,9 @@
                 <option value="time">Time tracked</option>
                 <option value="completed" selected>Completed</option>
                 <option value="overdue">Overdue</option>
-                <option value="late">Late</option>
-                <option value="billable">Billable</option>
+                <option value="late" data-i18n="bar.late">Late</option>
+                <option value="billable-global" data-i18n="pie.billableGlobal">Billable (Global)</option>
+                <option value="billable-daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
               </select>
             </div>
             <div id="billable-panel" class="billable-panel hidden">
@@ -627,15 +629,16 @@
       <!-- VIEW 2.5: BILLABLE LIST                    -->
       <!-- ========================================== -->
       <div id="view-billableList" class="view-content no-padding hidden">
-        <table class="details-table">
-          <thead>
-            <tr>
-              <th data-i18n="table.date">Date</th>
-              <th data-i18n="table.project">Project</th>
-              <th data-i18n="table.timeSpent">Time Spent</th>
-              <th>%</th>
-              <th data-i18n="pie.billable">Work Days</th>
-            </tr>
+        <div style="padding: 1rem; border-bottom: 1px solid var(--divider-color, #333); display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-color, #fff);" data-i18n="tab.billableList">Billable List</h3>
+          <select id="billable-table-select" class="chart-select" style="width:auto" onchange="renderBillableTable(latestMetrics)">
+            <option value="daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
+            <option value="global" data-i18n="pie.billableGlobal">Billable (Global)</option>
+          </select>
+        </div>
+        <table class="details-table" id="billable-table">
+          <thead id="billable-table-head">
+            <!-- Headers injected by JS -->
           </thead>
           <tbody id="billable-table-body">
             <!-- Rows injected by JS -->
@@ -754,7 +757,8 @@
                 <label class="s-toggle"><input type="checkbox" id="cat-completed" checked><span class="s-track"></span><span data-i18n="settings.catCompleted">Tasks Completed</span></label>
                 <label class="s-toggle"><input type="checkbox" id="cat-overdue" checked><span class="s-track"></span><span data-i18n="settings.catOverdue">Tasks Overdue</span></label>
                 <label class="s-toggle"><input type="checkbox" id="cat-late" checked><span class="s-track"></span><span data-i18n="settings.catLate">Completed Late</span></label>
-                <label class="s-toggle"><input type="checkbox" id="cat-billable" checked><span class="s-track"></span><span data-i18n="settings.catBillable">Billable Days</span></label>
+                <label class="s-toggle"><input type="checkbox" id="cat-billable-global" checked><span class="s-track"></span><span data-i18n="settings.catBillableGlobal">Billable (Global)</span></label>
+                <label class="s-toggle"><input type="checkbox" id="cat-billable-daily" checked><span class="s-track"></span><span data-i18n="settings.catBillableDaily">Billable (Daily)</span></label>
               </div>
             </div>
           </div>
@@ -817,6 +821,8 @@
         'pie.overdue': 'Overdue',
         'pie.late': 'Late',
         'pie.billable': 'Work Days',
+        'pie.billableGlobal': 'Billable (Global)',
+        'pie.billableDaily': 'Billable (Daily)',
         'pie.noData': 'No data for selected period',
         'pie.total': 'Total',
         'billable.days': 'Work days',
@@ -865,7 +871,8 @@
         'settings.catCompleted': 'Tasks Completed',
         'settings.catOverdue': 'Tasks Overdue',
         'settings.catLate': 'Completed Late',
-        'settings.catBillable': 'Billable Days',
+        'settings.catBillableGlobal': 'Billable (Global)',
+        'settings.catBillableDaily': 'Billable (Daily)',
         'settings.reset': 'Reset all settings & filters to defaults',
         'dynamic.total': (n) => `/ ${n} total`,
         'dynamic.projects': (n) => `${n} projects`,
@@ -914,7 +921,9 @@
         'pie.overdue': 'En retard',
         'pie.late': 'Hors délai',
         'pie.billable': 'Jours travaillés',
-        'pie.noData': 'Aucune donnée sur cette période',
+        'pie.billableGlobal': 'Facturable (Global)',
+        'pie.billableDaily': 'Facturable (Par jour)',
+        'pie.noData': 'Aucune donnée pour la période sélectionnée',
         'pie.total': 'Total',
         'billable.days': 'Jours de travail',
         'billable.hpd': 'Heures / jour',
@@ -962,7 +971,8 @@
         'settings.catCompleted': 'Tâches terminées',
         'settings.catOverdue': 'Tâches en retard',
         'settings.catLate': 'Terminées hors délai',
-        'settings.catBillable': 'Jours facturables',
+        'settings.catBillableGlobal': 'Facturable (Global)',
+        'settings.catBillableDaily': 'Facturable (Par jour)',
         'settings.reset': 'Réinitialiser tous les filtres et paramètres par défaut',
         'dynamic.total': (n) => `/ ${n} au total`,
         'dynamic.projects': (n) => `${n} projets`,
@@ -1332,11 +1342,12 @@
     document.getElementById('bar-chart-breakdown').addEventListener('change', () => { updateBarChart(); saveSession(); });
     document.getElementById('pie-chart-select').addEventListener('change', () => { updatePieChart(); saveSession(); });
     const PIE_CATEGORIES = [
-      { id: 'cat-time',      value: 'time',      labelKey: 'pie.time'     },
-      { id: 'cat-completed', value: 'completed',  labelKey: 'pie.completed' },
-      { id: 'cat-overdue',   value: 'overdue',    labelKey: 'pie.overdue'  },
-      { id: 'cat-late',      value: 'late',       labelKey: 'pie.late'     },
-      { id: 'cat-billable',  value: 'billable',   labelKey: 'pie.billable' },
+      { id: 'cat-time',            value: 'time',            labelKey: 'pie.time'     },
+      { id: 'cat-completed',       value: 'completed',        labelKey: 'pie.completed' },
+      { id: 'cat-overdue',         value: 'overdue',          labelKey: 'pie.overdue'  },
+      { id: 'cat-late',            value: 'late',             labelKey: 'pie.late'     },
+      { id: 'cat-billable-global', value: 'billable-global',  labelKey: 'pie.billableGlobal' },
+      { id: 'cat-billable-daily',  value: 'billable-daily',   labelKey: 'pie.billableDaily' },
     ];
     const syncPieCategories = () => {
       const select = document.getElementById('pie-chart-select');
@@ -1460,8 +1471,10 @@
         renderGenericBarChart(processMetrics(latestMetrics.overduePerDay), 'bar-chart-container', '#f87171', (v) => t('dynamic.tasks', v));
       } else if (type === 'late') {
         renderGenericBarChart(processMetrics(latestMetrics.latePerDay), 'bar-chart-container', '#fbbf24', (v) => t('dynamic.tasks', v));
-      } else if (type === 'billable') {
+      } else if (type === 'billable-daily') {
         renderGenericBarChart(processMetrics(latestMetrics.billablePerDay), 'bar-chart-container', '#a855f7', (v) => `${v.toFixed(2)} ${t('billable.dayUnit')}`);
+      } else if (type === 'billable-global') {
+        renderGenericBarChart(processMetrics(latestMetrics.billableGlobalPerDay), 'bar-chart-container', '#a855f7', (v) => `${v.toFixed(2)} ${t('billable.dayUnit')}`);
       }
     };
 
@@ -1470,7 +1483,7 @@
       const type = document.getElementById('pie-chart-select').value;
       const billablePanel = document.getElementById('billable-panel');
 
-      if (type === 'billable') {
+      if (type === 'billable-global' || type === 'billable-daily') {
         billablePanel.classList.remove('hidden');
         const totalHours = latestMetrics.totalTimeSpent / 3600000;
         const hpdInput = document.getElementById('billable-hpd');
@@ -1492,7 +1505,8 @@
         
         // Sum billable days per project from daily data
         const projectBillableData = {};
-        latestMetrics.billablePerDay.breakdown.forEach(dailyBreakdown => {
+        const sourceData = type === 'billable-global' ? latestMetrics.billableGlobalPerDay : latestMetrics.billablePerDay;
+        sourceData.breakdown.forEach(dailyBreakdown => {
           for (const [pName, pData] of Object.entries(dailyBreakdown)) {
             projectBillableData[pName] = (projectBillableData[pName] || 0) + pData.val;
           }
@@ -1819,53 +1833,97 @@
     };
 
     const renderBillableTable = (metrics) => {
+      if (!metrics) return;
       const tbody = document.getElementById('billable-table-body');
-      
+      const thead = document.getElementById('billable-table-head');
+      const type = document.getElementById('billable-table-select').value;
       const rows = [];
-      metrics.billablePerDay.labels.forEach((dateStr, i) => {
-        const totalMs = metrics.weeklyData.data[i];
-        if (totalMs > 0) {
-          const dailyBreakdown = metrics.weeklyData.breakdown[i];
-          const billableBreakdown = metrics.billablePerDay.breakdown[i];
-          
-          for (const [pName, pData] of Object.entries(dailyBreakdown)) {
-            const ms = pData.val;
-            const pct = (ms / totalMs) * 100;
-            const billableDays = billableBreakdown[pName] ? billableBreakdown[pName].val : 0;
-            
-            rows.push({
-              date: dateStr,
-              projectName: pName,
-              projectColor: pData.color,
-              timeSpent: ms,
-              pct: pct,
-              billableDays: billableDays
-            });
+
+      if (type === 'daily') {
+        thead.innerHTML = `
+          <tr>
+            <th data-i18n="table.date">${t('table.date')}</th>
+            <th data-i18n="table.project">${t('table.project')}</th>
+            <th data-i18n="table.timeSpent">${t('table.timeSpent')}</th>
+            <th>%</th>
+            <th data-i18n="pie.billableDaily">${t('pie.billableDaily')}</th>
+          </tr>
+        `;
+        metrics.billablePerDay.labels.forEach((dateStr, i) => {
+          const totalMs = metrics.weeklyData.data[i];
+          if (totalMs > 0) {
+            const dailyBreakdown = metrics.weeklyData.breakdown[i];
+            const billableBreakdown = metrics.billablePerDay.breakdown[i];
+            for (const [pName, pData] of Object.entries(dailyBreakdown)) {
+              const ms = pData.val;
+              const pct = (ms / totalMs) * 100;
+              const billableDays = billableBreakdown[pName] ? billableBreakdown[pName].val : 0;
+              rows.push({
+                date: dateStr, projectName: pName, projectColor: pData.color,
+                timeSpent: ms, pct: pct, billableDays: billableDays
+              });
+            }
           }
+        });
+        rows.sort((a, b) => b.date.localeCompare(a.date) || b.timeSpent - a.timeSpent);
+        if (rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
+          return;
         }
-      });
-      
-      rows.sort((a, b) => b.date.localeCompare(a.date) || b.timeSpent - a.timeSpent);
-
-      if (rows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
-        return;
+        tbody.innerHTML = rows.map(entry => `
+          <tr>
+            <td style="white-space: nowrap;">${formatTableDate(entry.date)}</td>
+            <td style="font-size: 0.875rem;">
+              <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
+                <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
+              </span>
+            </td>
+            <td class="time-cell">${formatTime(entry.timeSpent)}</td>
+            <td>${entry.pct.toFixed(1)}%</td>
+            <td>${entry.billableDays.toFixed(2)}</td>
+          </tr>
+        `).join('');
+      } else {
+        thead.innerHTML = `
+          <tr>
+            <th data-i18n="table.project">${t('table.project')}</th>
+            <th data-i18n="table.timeSpent">${t('table.timeSpent')}</th>
+            <th>%</th>
+            <th data-i18n="pie.billableGlobal">${t('pie.billableGlobal')}</th>
+          </tr>
+        `;
+        const totalMs = metrics.totalTimeSpent;
+        const hpd = parseFloat(document.getElementById('billable-hpd').value) || 8;
+        const msPerDay = hpd * 3600000;
+        for (const [pName, ms] of Object.entries(metrics.projectData)) {
+          const pct = (ms / totalMs) * 100;
+          const globalDays = ms / msPerDay;
+          const pColor = metrics.projectColorMap[pName] || '#fff';
+          rows.push({
+            projectName: pName, projectColor: pColor,
+            timeSpent: ms, pct: pct, billableDays: globalDays
+          });
+        }
+        rows.sort((a, b) => b.timeSpent - a.timeSpent);
+        if (rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = rows.map(entry => `
+          <tr>
+            <td style="font-size: 0.875rem;">
+              <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
+                <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
+              </span>
+            </td>
+            <td class="time-cell">${formatTime(entry.timeSpent)}</td>
+            <td>${entry.pct.toFixed(1)}%</td>
+            <td>${entry.billableDays.toFixed(2)}</td>
+          </tr>
+        `).join('');
       }
-
-      tbody.innerHTML = rows.map(entry => `
-        <tr>
-          <td style="white-space: nowrap;">${formatTableDate(entry.date)}</td>
-          <td style="font-size: 0.875rem;">
-            <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
-              <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
-            </span>
-          </td>
-          <td class="time-cell">${formatTime(entry.timeSpent)}</td>
-          <td>${entry.pct.toFixed(1)}%</td>
-          <td>${entry.billableDays.toFixed(2)}</td>
-        </tr>
-      `).join('');
     };
     // helper for normalizing a task's dueDay to day boundaries (UTC)
     const getDueBounds = (task) => {
@@ -1986,6 +2044,7 @@
         overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
         latePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
         billablePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        billableGlobalPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
         projectData: {},
         projectCompletedData: {},
         projectOverdueData: {},
@@ -2155,14 +2214,16 @@
         const totalMs = metrics.weeklyData.data[index];
         if (totalMs > 0) {
           const daysLogged = 1;
+          const globalDaysLogged = totalMs / msPerDay;
+          
           metrics.billablePerDay.data[index] = daysLogged;
+          metrics.billableGlobalPerDay.data[index] = globalDaysLogged;
+          
           const breakdown = metrics.weeklyData.breakdown[index];
           for (const [pName, pData] of Object.entries(breakdown)) {
             const pct = pData.val / totalMs;
-            metrics.billablePerDay.breakdown[index][pName] = {
-              val: pct * daysLogged,
-              color: pData.color
-            };
+            metrics.billablePerDay.breakdown[index][pName] = { val: pct * daysLogged, color: pData.color };
+            metrics.billableGlobalPerDay.breakdown[index][pName] = { val: pct * globalDaysLogged, color: pData.color };
           }
         }
       });
