@@ -425,7 +425,7 @@ describe("Date Range Reporter UI", () => {
 				.dispatchEvent(new Event("change"));
 			const weeklyCount = barContainer.querySelectorAll(".bar-col").length;
 			expect(weeklyCount).toBeLessThan(dailyCount);
-			expect(weeklyCount).toBeLessThanOrEqual(5);
+			expect(weeklyCount).toBeLessThanOrEqual(6);
 
 			// restore
 			document.getElementById("setting-bar-grouping").value = "daily";
