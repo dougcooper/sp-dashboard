@@ -562,8 +562,9 @@
                 </select>
               </div>
             </div>
-            <div class="chart-container">
-              <div class="bar-chart" id="bar-chart-container"></div>
+            <div class="chart-container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start;">
+              <div id="bar-y-axis" style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; width: 45px; font-size: 0.65rem; color: var(--text-color-muted, #9e9e9e); padding-top: 0.5rem; padding-bottom: 20px; padding-right: 8px; border-right: 1px solid var(--divider-color, #333); margin-right: 8px; box-sizing: border-box; flex-shrink: 0;"></div>
+              <div class="bar-chart" id="bar-chart-container" style="flex: 1; min-width: 0;"></div>
             </div>
           </div>
 
@@ -1466,15 +1467,15 @@
       if (type === 'time') {
         renderGenericBarChart(processMetrics(latestMetrics.weeklyData), 'bar-chart-container', 'var(--c-primary, #03a9f4)', formatTime);
       } else if (type === 'completed') {
-        renderGenericBarChart(processMetrics(latestMetrics.completedPerDay), 'bar-chart-container', '#4ade80', (v) => t('dynamic.tasks', v));
+        renderGenericBarChart(processMetrics(latestMetrics.completedPerDay), 'bar-chart-container', '#4ade80', (v) => t('dynamic.tasks', Number.isInteger(v) ? v : v.toFixed(1)));
       } else if (type === 'overdue') {
-        renderGenericBarChart(processMetrics(latestMetrics.overduePerDay), 'bar-chart-container', '#f87171', (v) => t('dynamic.tasks', v));
+        renderGenericBarChart(processMetrics(latestMetrics.overduePerDay), 'bar-chart-container', '#f87171', (v) => t('dynamic.tasks', Number.isInteger(v) ? v : v.toFixed(1)));
       } else if (type === 'late') {
-        renderGenericBarChart(processMetrics(latestMetrics.latePerDay), 'bar-chart-container', '#fbbf24', (v) => t('dynamic.tasks', v));
+        renderGenericBarChart(processMetrics(latestMetrics.latePerDay), 'bar-chart-container', '#fbbf24', (v) => t('dynamic.tasks', Number.isInteger(v) ? v : v.toFixed(1)));
       } else if (type === 'billable-daily') {
-        renderGenericBarChart(processMetrics(latestMetrics.billablePerDay), 'bar-chart-container', '#a855f7', (v) => `${v.toFixed(2)} ${t('billable.dayUnit')}`);
+        renderGenericBarChart(processMetrics(latestMetrics.billablePerDay), 'bar-chart-container', '#a855f7', (v) => `${Number.isInteger(v) ? v : v.toFixed(1)} ${t('billable.dayUnit')}`);
       } else if (type === 'billable-global') {
-        renderGenericBarChart(processMetrics(latestMetrics.billableGlobalPerDay), 'bar-chart-container', '#a855f7', (v) => `${v.toFixed(2)} ${t('billable.dayUnit')}`);
+        renderGenericBarChart(processMetrics(latestMetrics.billableGlobalPerDay), 'bar-chart-container', '#a855f7', (v) => `${Number.isInteger(v) ? v : v.toFixed(1)} ${t('billable.dayUnit')}`);
       }
     };
 
@@ -1611,6 +1612,21 @@
       }
 
       const maxVal = Math.max(...bars.map(b => b.val), 1);
+      
+      const yAxisEl = document.getElementById('bar-y-axis');
+      if (yAxisEl) {
+        yAxisEl.innerHTML = '';
+        const ticks = [maxVal, maxVal * 0.75, maxVal * 0.5, maxVal * 0.25, 0];
+        ticks.forEach(tickVal => {
+          const div = document.createElement('div');
+          div.style.lineHeight = '1';
+          div.style.display = 'flex';
+          div.style.alignItems = 'center';
+          div.style.height = '1px'; // Center the text on the flex distribution line
+          div.textContent = formatFn(tickVal);
+          yAxisEl.appendChild(div);
+        });
+      }
       // At most 8 visible tick labels - enough to orient without overlap at any bar width
       const n = bars.length;
       const labelStep = Math.max(1, Math.ceil(n / 8));
