@@ -359,7 +359,7 @@ describe("Date Range Reporter UI", () => {
 			expect(text).toContain("Late");
 
 			const barSelect = document.getElementById("bar-chart-select");
-			const pieSelect = document.getElementById("pie-chart-select");
+			const pieSelect = document.getElementById("breakdown-chart-select");
 			const barContainer = document.getElementById("bar-chart-container");
 
 			// bar count limits for presets - grouping is always daily by default (no auto-bucketing)
@@ -386,14 +386,14 @@ describe("Date Range Reporter UI", () => {
 			expect(barContainer.querySelector(".bar")).not.toBeNull();
 
 			pieSelect.value = "overdue";
-			window.updatePieChart();
+			window.updateProjectBreakdown();
 			// JSDOM may not retain gradient string, but legend items should appear
-			const pieLegend = document.getElementById("pie-legend-container");
-			expect(pieLegend.querySelector(".legend-item")).not.toBeNull();
+			const pieLegend = document.getElementById("breakdown-list");
+			expect(pieLegend.querySelector(".breakdown-item")).not.toBeNull();
 
 			pieSelect.value = "late";
-			window.updatePieChart();
-			expect(pieLegend.querySelector(".legend-item")).not.toBeNull();
+			window.updateProjectBreakdown();
+			expect(pieLegend.querySelector(".breakdown-item")).not.toBeNull();
 		});
 
 		it("today preset is the default and produces a single-day label on the bar axis", () => {
@@ -489,26 +489,26 @@ describe("Date Range Reporter UI", () => {
 		});
 
 		it("billable panel is hidden when project breakdown type is not billable", () => {
-			const pieSelect = document.getElementById("pie-chart-select");
+			const pieSelect = document.getElementById("breakdown-chart-select");
 			const billablePanel = document.getElementById("billable-panel");
 
-			// need data so updatePieChart doesn't exit early
+			// need data so updateProjectBreakdown doesn't exit early
 			window.processData([], []);
 
 			pieSelect.value = "completed";
-			window.updatePieChart();
+			window.updateProjectBreakdown();
 			expect(billablePanel.classList.contains("hidden")).toBe(true);
 
 			pieSelect.value = "time";
-			window.updatePieChart();
+			window.updateProjectBreakdown();
 			expect(billablePanel.classList.contains("hidden")).toBe(true);
 
 			pieSelect.value = "billable-global";
-			window.updatePieChart();
+			window.updateProjectBreakdown();
 			expect(billablePanel.classList.contains("hidden")).toBe(false);
 
 			pieSelect.value = "completed";
-			window.updatePieChart();
+			window.updateProjectBreakdown();
 			expect(billablePanel.classList.contains("hidden")).toBe(true);
 		});
 

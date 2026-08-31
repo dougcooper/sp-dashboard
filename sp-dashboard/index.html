@@ -261,21 +261,8 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     .bar-tooltip.visible { display: block; }
-
-    .pie-wrapper { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 2rem; }
-    .pie-chart {
-      width: 150px; height: 150px; border-radius: 50%; flex-shrink: 0;
-      background: conic-gradient(var(--divider-color, #333) 0% 100%);
-      mask-image: radial-gradient(circle, transparent 58%, black 59%);
-      -webkit-mask-image: radial-gradient(circle, transparent 58%, black 59%);
-      transition: background 0.3s;
-    }
-    .pie-legend { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; padding-right: 0.5rem; min-width: 0; }
-    .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; gap: 0.5rem; }
-    .legend-label { display: flex; align-items: center; gap: 0.5rem; color: var(--text-color-muted, #9e9e9e); min-width: 0; flex: 1; overflow: hidden; }
-    .legend-label span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-    .legend-val { font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+    .breakdown-wrapper { display: flex; flex-direction: column; width: 100%; height: 100%; gap: 1.5rem; }
+    .breakdown-item { display: flex; flex-direction: column; gap: 6px; }
 
     /* --- TABLE (DETAILED LIST) --- */
     .details-table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -609,7 +596,7 @@
           <div class="chart-card">
             <div class="card-header">
               <h3 class="card-title" data-i18n="pie.title">Project Breakdown</h3>
-              <select id="pie-chart-select" class="chart-select">
+              <select id="breakdown-chart-select" class="chart-select">
                 <option value="time">Time tracked</option>
                 <option value="completed" selected>Completed</option>
                 <option value="overdue">Overdue</option>
@@ -633,10 +620,10 @@
                 <span id="billable-avg-display" style="font-size:0.7rem;color:var(--text-color-muted,#9e9e9e);"></span>
               </div>
             </div>
-            <div class="chart-container">
-              <div class="pie-wrapper">
-                <div class="pie-chart" id="pie-chart-element"></div>
-                <div class="pie-legend" id="pie-legend-container"></div>
+            <div class="chart-container" style="align-items: flex-start; padding-top: 1rem;">
+              <div class="breakdown-wrapper" id="breakdown-wrapper" style="width: 100%; display: flex; flex-direction: column; gap: 1.5rem;">
+                <div id="breakdown-bar" style="display: flex; height: 16px; border-radius: 8px; overflow: hidden; width: 100%; background: var(--divider-color, #333); flex-shrink: 0;"></div>
+                <div id="breakdown-list" style="display: flex; flex-direction: column; gap: 0.8rem; overflow-y: auto; max-height: 180px; padding-right: 0.5rem; flex: 1;"></div>
               </div>
             </div>
           </div>
@@ -1207,7 +1194,7 @@
         projectIds:   selectedIds,
         barChartType: document.getElementById('bar-chart-select').value,
         barChartBreakdown: document.getElementById('bar-chart-breakdown').checked,
-        pieChartType: document.getElementById('pie-chart-select').value,
+        pieChartType: document.getElementById('breakdown-chart-select').value,
       };
     };
     const saveSession = () => {
@@ -1226,7 +1213,7 @@
         if (s.barChartType) document.getElementById('bar-chart-select').value = s.barChartType;
         if (s.barChartBreakdown !== undefined) document.getElementById('bar-chart-breakdown').checked = s.barChartBreakdown;
         if (s.pieChartType) {
-          const sel = document.getElementById('pie-chart-select');
+          const sel = document.getElementById('breakdown-chart-select');
           if ([...sel.options].some(o => o.value === s.pieChartType)) sel.value = s.pieChartType;
         }
         if (s.projectIds !== undefined) {
@@ -1303,8 +1290,8 @@
       // Rebuild pie select and reset
       syncPieCategories();
       document.getElementById('bar-chart-select').value = 'completed';
-      document.getElementById('pie-chart-select').value = 'completed';
-      updatePieChart();
+      document.getElementById('breakdown-chart-select').value = 'completed';
+      updateProjectBreakdown();
       processData(cachedTasks, cachedProjects);
     };
 
@@ -1443,7 +1430,7 @@
     });
     document.getElementById('bar-chart-select').addEventListener('change', () => { updateBarChart(); saveSession(); });
     document.getElementById('bar-chart-breakdown').addEventListener('change', () => { updateBarChart(); saveSession(); });
-    document.getElementById('pie-chart-select').addEventListener('change', () => { updatePieChart(); saveSession(); });
+    document.getElementById('breakdown-chart-select').addEventListener('change', () => { updateProjectBreakdown(); saveSession(); });
     const PIE_CATEGORIES = [
       { id: 'cat-time',            value: 'time',            labelKey: 'pie.time'     },
       { id: 'cat-completed',       value: 'completed',        labelKey: 'pie.completed' },
@@ -1453,7 +1440,7 @@
       { id: 'cat-billable-daily',  value: 'billable-daily',   labelKey: 'pie.billableDaily' },
     ];
     const syncPieCategories = () => {
-      const select = document.getElementById('pie-chart-select');
+      const select = document.getElementById('breakdown-chart-select');
       const current = select.value;
       select.innerHTML = '';
       PIE_CATEGORIES.forEach(cat => {
@@ -1466,7 +1453,7 @@
         }
       });
       if (!select.value && select.options.length > 0) select.options[0].selected = true;
-      updatePieChart();
+      updateProjectBreakdown();
     };
     document.getElementById('setting-bar-grouping').addEventListener('change', () => { updateBarChart(); saveSettings(); });
     document.getElementById('setting-bar-aggregation').addEventListener('change', () => { updateBarChart(); saveSettings(); });
@@ -1476,8 +1463,8 @@
       renderTable(currentDetailEntries || sortEntries(latestMetrics.tableEntries, currentSort.key, currentSort.dir));
       saveSettings();
     });
-    document.getElementById('setting-show-pct').addEventListener('change', () => { updatePieChart(); saveSettings(); });
-    document.getElementById('setting-show-total').addEventListener('change', () => { updatePieChart(); saveSettings(); });
+    document.getElementById('setting-show-pct').addEventListener('change', () => { updateProjectBreakdown(); saveSettings(); });
+    document.getElementById('setting-show-total').addEventListener('change', () => { updateProjectBreakdown(); saveSettings(); });
     PIE_CATEGORIES.forEach(cat => {
       document.getElementById(cat.id).addEventListener('change', () => { syncPieCategories(); saveSettings(); });
     });
@@ -1545,7 +1532,7 @@
         document.getElementById('billable-hpd').value = (totalHours / days).toFixed(2);
       }
       recomputeBillableGlobal();
-      updatePieChart();
+      updateProjectBreakdown();
       updateBarChart();
       renderBillableTable(latestMetrics);
       saveSettings();
@@ -1558,7 +1545,7 @@
         document.getElementById('billable-days').value = (totalHours / hpd).toFixed(2);
       }
       recomputeBillableGlobal();
-      updatePieChart();
+      updateProjectBreakdown();
       updateBarChart();
       renderBillableTable(latestMetrics);
       saveSettings();
@@ -1612,7 +1599,7 @@
       }
 
       updateBarChart();
-      updatePieChart();
+      updateProjectBreakdown();
       renderTable(sortedEntries);
       renderBillableTable(metrics);
       updateSortIndicators();
@@ -1647,9 +1634,9 @@
       }
     };
 
-    const updatePieChart = () => {
+    const updateProjectBreakdown = () => {
       if (!latestMetrics) return;
-      const type = document.getElementById('pie-chart-select').value;
+      const type = document.getElementById('breakdown-chart-select').value;
       const billablePanel = document.getElementById('billable-panel');
 
       if (type === 'billable-global' || type === 'billable-daily') {
@@ -1899,38 +1886,24 @@
     };
 
     const renderNativePieChart = (projectData, formatFn) => {
-      const pieEl = document.getElementById('pie-chart-element');
-      const legendEl = document.getElementById('pie-legend-container');
+      const breakdownBar = document.getElementById('breakdown-bar');
+      const breakdownList = document.getElementById('breakdown-list');
       const showPct = document.getElementById('setting-show-pct').checked;
       const showTotal = document.getElementById('setting-show-total').checked;
-      legendEl.innerHTML = '';
-
-      // Grid layout when % are shown: columns auto-size so dashes align perfectly
-      if (showPct) {
-        legendEl.style.display = 'grid';
-        legendEl.style.gridTemplateColumns = '1fr auto auto';
-        legendEl.style.columnGap = '0.4rem';
-        legendEl.style.rowGap = '0.5rem';
-        legendEl.style.alignItems = 'center';
-      } else {
-        legendEl.style.display = '';
-        legendEl.style.gridTemplateColumns = '';
-        legendEl.style.columnGap = '';
-        legendEl.style.rowGap = '';
-        legendEl.style.alignItems = '';
-      }
+      
+      breakdownBar.innerHTML = '';
+      breakdownList.innerHTML = '';
 
       const entries = Object.entries(projectData).sort((a,b) => b[1] - a[1]);
       const totalVal = entries.reduce((acc, curr) => acc + curr[1], 0);
 
       if (totalVal === 0 || entries.length === 0) {
-        pieEl.style.background = 'var(--divider-color, #333)';
-        legendEl.innerHTML = `<div class="text-muted text-sm">${t('pie.noData')}</div>`;
+        breakdownBar.style.background = 'var(--divider-color, #333)';
+        breakdownList.innerHTML = `<div class="text-muted text-sm">${t('pie.noData')}</div>`;
         return;
       }
+      breakdownBar.style.background = 'transparent';
 
-      const gradientStops = [];
-      let currentPercent = 0;
       const fmtPct = (p) => p.toFixed(1).endsWith('.0') ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
 
       entries.forEach(([name, val], index) => {
@@ -1938,55 +1911,43 @@
           ? latestMetrics.projectColorMap[name] 
           : PIE_COLORS[index % PIE_COLORS.length];
         const percent = (val / totalVal) * 100;
-        gradientStops.push(`${color} ${currentPercent}% ${currentPercent + percent}%`);
-        currentPercent += percent;
 
+        // Add segment to the thick bar
+        const segment = document.createElement('div');
+        segment.style.width = `${percent}%`;
+        segment.style.height = '100%';
+        segment.style.background = color;
+        segment.title = `${name}: ${formatFn(val)}`;
+        breakdownBar.appendChild(segment);
+
+        // Add item to the list
         const baseVal = formatFn(val);
         const displayName = name === 'Uncategorized' ? t('dynamic.uncategorized') : name;
-        const truncName = displayName.length > 20 ? `${displayName.substring(0, 20)}...` : displayName;
-
-        if (showPct) {
-          legendEl.innerHTML += `
-            <div class="legend-label">
-              <span class="legend-dot" style="background:${color}"></span>
-              <span title="${displayName}">${truncName}</span>
-            </div>
-            <div class="legend-val" style="text-align:right">${baseVal}</div>
-            <div style="color:var(--text-color-muted,#9e9e9e);font-weight:400;white-space:nowrap">- ${fmtPct(percent)}</div>
-          `;
-        } else {
-          legendEl.innerHTML += `
-            <div class="legend-item">
-              <div class="legend-label">
-                <span class="legend-dot" style="background:${color}"></span>
-                <span title="${displayName}">${truncName}</span>
+        const pctStr = showPct ? `<span style="color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; margin-left: 0.3rem;">${fmtPct(percent)}</span>` : '';
+        
+        breakdownList.innerHTML += `
+          <div class="breakdown-item" style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.875rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; overflow: hidden; padding-right: 0.5rem;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: ${color}; flex-shrink: 0;"></div>
+                <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-color, #fff); font-weight: 500;">${displayName}</div>
               </div>
-              <div class="legend-val">${baseVal}</div>
+              <div style="font-weight: 600; white-space: nowrap; flex-shrink: 0;">${baseVal}${pctStr}</div>
             </div>
-          `;
-        }
+            <div style="width: 100%; height: 6px; background: rgba(128, 128, 128, 0.15); border-radius: 3px; overflow: hidden;">
+              <div style="width: ${percent}%; height: 100%; background: ${color}; border-radius: 3px;"></div>
+            </div>
+          </div>
+        `;
       });
-      pieEl.style.background = `conic-gradient(${gradientStops.join(', ')})`;
 
       if (showTotal) {
-        const totalDisplay = formatFn(totalVal);
-        if (showPct) {
-          legendEl.innerHTML += `
-            <div style="grid-column:1/-1;border-top:1px solid var(--divider-color,#333);margin:0.1rem 0"></div>
-            <div class="legend-label" style="color:var(--text-color,#fff);font-weight:600">${t('pie.total')}</div>
-            <div class="legend-val" style="text-align:right">${totalDisplay}</div>
-            <div style="color:var(--text-color-muted,#9e9e9e);font-weight:400;white-space:nowrap">- 100%</div>
-          `;
-        } else {
-          legendEl.innerHTML += `
-            <div style="border-top:1px solid var(--divider-color,#333);margin-top:0.35rem;padding-top:0.35rem;">
-              <div class="legend-item">
-                <div class="legend-label" style="color:var(--text-color,#fff);font-weight:600">${t('pie.total')}</div>
-                <div class="legend-val">${totalDisplay}</div>
-              </div>
-            </div>
-          `;
-        }
+        breakdownList.innerHTML += `
+          <div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 0.875rem; font-weight: 700; padding-top: 0.75rem; border-top: 1px solid var(--divider-color, #333); margin-top: 0.25rem;">
+            <div style="padding-left: calc(10px + 0.5rem);">${t('pie.total')}</div>
+            <div>${formatFn(totalVal)}${showPct ? `<span style="color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; margin-left: 0.3rem;">100%</span>` : ''}</div>
+          </div>
+        `;
       }
     };
 
@@ -2558,7 +2519,7 @@
     window.switchTab = switchTab;
     window.processData = processData;
     window.updateBarChart = updateBarChart;
-    window.updatePieChart = updatePieChart;
+    window.updateProjectBreakdown = updateProjectBreakdown;
     window.sortEntries = sortEntries;
     window.updateProjectFilter = updateProjectFilter;
     window.updateProjectFilterBtn = updateProjectFilterBtn;

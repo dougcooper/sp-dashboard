@@ -81,7 +81,7 @@ describe("Synced persistence via PluginAPI", () => {
 		await vi.advanceTimersByTimeAsync(600);
 
 		expect(document.getElementById("date-preset").value).toBe("week");
-		expect(document.getElementById("pie-chart-select").value).toBe("billable-global");
+		expect(document.getElementById("breakdown-chart-select").value).toBe("billable-global");
 		expect(document.getElementById("bar-chart-select").value).toBe("time");
 		expect(document.getElementById("billable-hpd").value).toBe("7");
 	});
