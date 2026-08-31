@@ -490,6 +490,7 @@
             </div>
             <div class="stat-value-container">
               <span class="stat-value" id="stat-time">0h 0m</span>
+              <span class="stat-suffix" id="stat-active-days"></span>
             </div>
           </div>
 
@@ -790,9 +791,9 @@
         'tab.details': 'Detailed List',
         'tab.billableList': 'Billable List',
         'tab.settings': 'Settings',
-        'stat.totalTime': 'Total Time Tracked',
+        'stat.totalTime': 'Time',
         'stat.completed': 'Tasks Completed',
-        'stat.overdue': 'Overdue Tasks',
+        'stat.overdue': 'Tasks Overdue',
         'stat.late': 'Completed Late',
         'stat.tasks': 'tasks',
         'stat.needsAttention': 'Needs Attention',
@@ -864,6 +865,7 @@
         'dynamic.projects': (n) => `${n} projects`,
         'dynamic.unplanned': (n) => `${n} task(s) have no due date so overdue is unavailable`,
         'dynamic.uncategorized': 'Uncategorized',
+        'dynamic.activeDays': (n) => `${n} active days`,
         'dynamic.untitledTask': 'Untitled Task',
         'dynamic.weekOf': (d) => `w/c ${d}`,
         'dynamic.tasks': (n) => `${Math.round(n)} tasks`,
@@ -886,7 +888,7 @@
         'tab.details': 'Liste détaillée',
         'tab.billableList': 'Liste des jours travaillés',
         'tab.settings': 'Paramètres',
-        'stat.totalTime': 'Temps total enregistré',
+        'stat.totalTime': 'Heures',
         'stat.completed': 'Tâches terminées',
         'stat.overdue': 'Tâches en retard',
         'stat.late': 'Terminées hors délai',
@@ -959,7 +961,8 @@
         'dynamic.total': (n) => `/ ${n} au total`,
         'dynamic.projects': (n) => `${n} projets`,
         'dynamic.unplanned': (n) => `${n} tâche(s) sans date d'échéance (calcul du retard impossible)`,
-        'dynamic.uncategorized': 'Sans projet',
+        'dynamic.uncategorized': 'Non catégorisé',
+        'dynamic.activeDays': (n) => `${n} jours actifs`,
         'dynamic.untitledTask': 'Tâche sans titre',
         'dynamic.weekOf': (d) => `Sem. du ${d}`,
         'dynamic.tasks': (n) => `${Math.round(n)} tâches`,
@@ -1393,6 +1396,10 @@
       const sortedEntries = sortEntries(metrics.tableEntries, currentSort.key, currentSort.dir);
 
       document.getElementById('stat-time').innerText = formatTime(metrics.totalTimeSpent);
+      
+      const activeDaysCount = metrics.weeklyData.data.filter(ms => ms > 3600000).length;
+      document.getElementById('stat-active-days').innerText = activeDaysCount > 0 ? t('dynamic.activeDays', activeDaysCount) : '';
+
       document.getElementById('stat-tasks').innerText = String(metrics.totalCompleted);
       document.getElementById('stat-tasks-total').innerText = t('dynamic.total', metrics.totalTasks);
       
