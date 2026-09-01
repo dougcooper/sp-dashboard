@@ -46,7 +46,9 @@
         flex-direction: row; 
         justify-content: space-between; 
         align-items: center; 
+        flex-wrap: wrap;
       } 
+      .controls { flex-wrap: nowrap; }
     }
     
     .title {
@@ -64,22 +66,41 @@
     .controls {
       display: flex;
       align-items: center;
-      gap: var(--s, 0.5rem);
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
     
     .control-box {
-      background: var(--card-bg, #1e1e1e);
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--divider-color, #333);
-      border-radius: var(--card-border-radius, 8px);
-      padding: var(--s, 0.5rem) var(--s2, 1rem);
+      border-radius: 20px;
+      padding: 0.25rem 0.75rem;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 220px;
+      transition: all 0.2s ease;
+    }
+    /* the custom date range box keeps its natural size */
+    #custom-date-container { flex: 0 0 auto; max-width: none; }
+    .control-box label { flex-shrink: 0; }
+    
+    .control-box:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--text-color-muted, #666);
     }
 
     .control-box label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       color: var(--text-color-muted, #9e9e9e);
+      margin: 0;
     }
     
     select, input[type="date"] {
@@ -87,10 +108,14 @@
       color: var(--text-color, #fff);
       border: none;
       outline: none;
-      font-size: 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
       cursor: pointer;
       padding: 0;
     }
+    /* Controls row - uniform compact sizing */
+    #date-preset, input[type="date"] { font-size: 0.9rem; }
+    /* color-scheme on date inputs is set dynamically based on detected theme */
     select option {
       background: var(--card-bg, #1e1e1e);
       color: var(--text-color, #fff);
@@ -110,28 +135,38 @@
     /* --- TABS --- */
     .tabs {
       display: flex;
-      border-bottom: 1px solid var(--divider-color, #333);
-      padding: 0 var(--s2, 1rem);
+      gap: 0.5rem;
+      padding: 0.75rem var(--s3, 1.5rem);
       background: var(--card-bg, #1e1e1e);
+      border-bottom: 1px solid var(--divider-color, #333);
       flex-shrink: 0;
     }
     
     .tab-btn {
-      background: none;
-      border: none;
-      padding: var(--s2, 1rem) var(--s2, 1rem);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 20px;
+      padding: 0.4rem 1.25rem;
       cursor: pointer;
       color: var(--text-color-muted, #9e9e9e);
-      font-size: 1rem;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
       outline: none;
     }
     
-    .tab-btn:hover { color: var(--text-color, #fff); }
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-color, #fff);
+    }
+    
     .tab-btn.active {
+      /* tint derived from the host theme's primary color (rgba fallback for old engines) */
+      background: rgba(3, 169, 244, 0.1);
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 12%, transparent);
       color: var(--c-primary, #03a9f4);
-      border-bottom-color: var(--c-primary, #03a9f4);
+      border-color: rgba(3, 169, 244, 0.2);
+      border-color: color-mix(in srgb, var(--c-primary, #03a9f4) 25%, transparent);
     }
 
     /* --- VIEWS --- */
@@ -142,8 +177,8 @@
     }
     
     .view-content.no-padding { padding: 0; }
-    .hidden { display: none !important; }
-    .text-red { color: #f87171 !important; }
+    .hidden { display: none; }
+    .text-red { color: #f87171; }
 
     /* --- DASHBOARD GRID --- */
     .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--s3, 1.5rem); margin-bottom: var(--s3, 1.5rem); }
@@ -158,17 +193,115 @@
 
     .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
     .stat-title { color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
-    .stat-value-container { display: flex; align-items: baseline; justify-content: space-between; }
-    .stat-value { font-size: 2.25rem; font-weight: bold; }
-    .stat-suffix { color: var(--text-color-muted, #9e9e9e); font-size: 0.875rem; margin-left: 0.25rem; }
+    .stat-value-container { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+    .stat-value { font-size: 2.25rem; font-weight: bold; white-space: nowrap; line-height: 1.2; }
+    .stat-suffix { color: var(--text-color-muted, #9e9e9e); font-size: 0.875rem; text-align: right; margin-left: auto; }
 
     /* Badges */
     .badge { padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; white-space: nowrap; }
     .badge-red { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); }
     .badge-yellow { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.2); }
     /* sorting arrows on table headers */
-    #view-details th.sorted-asc::after { content: ' ▲'; }
-    #view-details th.sorted-desc::after { content: ' ▼'; }
+    .details-table th.sorted-asc::after { content: ' ▲'; }
+    .details-table th.sorted-desc::after { content: ' ▼'; }
+    /* visible break between two different days (date-sorted tables) */
+    .details-table tr.day-break td { border-top: 2px solid var(--text-color-muted, #9e9e9e); }
+    /* per-project totals footer */
+    .details-table tfoot td { font-weight: 600; }
+    .details-table tfoot tr.selection-row td {
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 10%, transparent);
+      border-top: 2px solid color-mix(in srgb, var(--c-primary, #03a9f4) 45%, transparent);
+    }
+    /* --- PROJECT GROUPING BAR (above the billable table) --- */
+    .billable-groups {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+      padding: 0.6rem var(--s3, 1.5rem);
+      border-bottom: 1px solid var(--divider-color, #333);
+    }
+    .billable-groups:empty { display: none; }
+    .billable-groups-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--text-color-muted, #9e9e9e); margin-right: 0.25rem;
+    }
+    .group-chip {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.25rem 0.5rem 0.25rem 0.65rem;
+      border: 1px solid var(--divider-color, #333); border-radius: 999px;
+      font-size: 0.8rem; max-width: 260px; cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .group-chip:hover { border-color: var(--text-color-muted, #666); }
+    .group-chip.is-grouped {
+      border-color: color-mix(in srgb, var(--c-primary, #03a9f4) 45%, transparent);
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 10%, transparent);
+    }
+    .group-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .group-select {
+      background: transparent; border: none; outline: none; cursor: pointer;
+      color: var(--text-color, #fff); font-size: 0.8rem; font-weight: 700;
+      padding: 0; width: 2.2em;
+    }
+    .group-clear {
+      background: none; border: none; cursor: pointer; padding: 0.25rem;
+      color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem; text-decoration: underline;
+    }
+    .group-clear:hover { color: var(--text-color, #fff); }
+
+    /* --- PROJECT BREAKDOWN --- */
+    .breakdown-wrapper { width: 100%; display: flex; flex-direction: column; gap: 1.25rem; }
+    .breakdown-bar { display: flex; gap: 2px; height: 14px; width: 100%; flex-shrink: 0; }
+    .breakdown-bar.is-empty { background: var(--divider-color, #333); border-radius: 4px; }
+    .breakdown-seg {
+      height: 100%; border-radius: 3px; min-width: 3px;
+      transition: opacity 0.15s ease;
+    }
+    /* dim the rest while one project is hovered, in the bar or in the list */
+    .breakdown-bar.has-hover .breakdown-seg { opacity: 0.25; }
+    .breakdown-bar.has-hover .breakdown-seg.is-hover { opacity: 1; }
+    .breakdown-list { display: flex; flex-direction: column; overflow-y: auto; max-height: 190px; }
+    .breakdown-row, .breakdown-total {
+      display: grid; grid-template-columns: 1fr auto auto;
+      align-items: baseline; gap: 0.75rem;
+      font-size: 0.875rem;
+    }
+    .breakdown-row {
+      padding: 0.45rem 0.4rem; border-radius: 6px;
+      transition: background 0.15s ease;
+    }
+    .breakdown-row:hover { background: color-mix(in srgb, var(--text-color, #fff) 7%, transparent); }
+    .breakdown-name { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+    .breakdown-name > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .breakdown-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .breakdown-val { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .breakdown-pct {
+      color: var(--text-color-muted, #9e9e9e); font-size: 0.75rem;
+      font-variant-numeric: tabular-nums; text-align: right; min-width: 3.4em;
+    }
+    .breakdown-total {
+      margin-top: 0.4rem; padding: 0.7rem 0.4rem 0;
+      border-top: 1px solid var(--divider-color, #333);
+      font-weight: 700;
+    }
+
+    /* --- BILLABLE LIST TOOLBAR --- */
+    .billable-toolbar {
+      padding: 0.75rem var(--s3, 1.5rem);
+      border-bottom: 1px solid var(--divider-color, #333);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+    .billable-toolbar-title { margin: 0; font-size: 1.1rem; color: var(--text-color, #fff); }
+    .billable-toolbar-controls { display: flex; align-items: center; gap: 0.5rem; }
+    /* reuse the header pill look so both controls match the rest of the app */
+    .billable-hours-box { flex: 0 0 auto; max-width: none; padding: 0.3rem 0.75rem; justify-content: flex-start; }
+    .billable-hours-box input[type=number] {
+      background: transparent; border: none; outline: none;
+      color: var(--text-color, #fff); font-size: 0.9rem; font-weight: 500;
+      width: 3.2em; text-align: left; padding: 0;
+      -moz-appearance: textfield; appearance: textfield;
+    }
+    .billable-hours-box input[type=number]::-webkit-outer-spin-button,
+    .billable-hours-box input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; }
     .badge-done { background: rgba(74, 222, 128, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); }
     .badge-progress { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.2); }
 
@@ -179,18 +312,41 @@
     .progress-fill { background: #4ade80; height: 100%; transition: width 0.5s ease-out; }
 
     /* Chart Controls */
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
     .card-title { font-size: 1.125rem; font-weight: 600; margin: 0; }
-    .chart-select { background: var(--card-bg, #1e1e1e); color: var(--text-color, #fff); border: 1px solid var(--divider-color, #333); border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+    .chart-select {
+      -webkit-appearance: none; appearance: none;
+      background: var(--card-bg, #1e1e1e) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239e9e9e' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+      background-size: 9px 6px;
+      color: var(--text-color, #fff);
+      border: 1px solid var(--divider-color, #333);
+      border-radius: 999px;
+      padding: 0.3rem 1.6rem 0.3rem 0.75rem;
+      font-size: 0.75rem;
+      width: 160px;
+      flex-shrink: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+    .chart-select:hover { border-color: var(--text-color-muted, #666); }
+    .chart-select:focus { outline: none; border-color: var(--c-primary, #03a9f4); }
 
     /* --- NATIVE CHARTS --- */
-    .chart-container { position: relative; height: 250px; width: 100%; display: flex; justify-content: center; }
-    
-    .bar-chart { display: flex; align-items: flex-end; justify-content: flex-start; width: 100%; height: 100%; padding-top: 1rem; gap: 4px; overflow-x: auto; }
-    .bar-col { flex: 0 0 32px; } /* fixed width columns prevent overlap and allow scrolling */
-    .bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
-    .bar { width: 100%; max-width: 32px; background: var(--c-primary, #03a9f4); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s; position: relative; }
-    .bar-label { font-size: 0.7rem; color: var(--text-color-muted, #9e9e9e); margin-top: 0.5rem; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+    .chart-card { display: flex; flex-direction: column; }
+    .chart-container { position: relative; flex: 1; min-height: 200px; width: 100%; display: flex; justify-content: center; }
+
+    /* Bar chart - outer container scrolls horizontally if bars overflow */
+    .bar-chart { display: flex; flex-direction: column; width: 100%; height: 100%; overflow-x: auto; overflow-y: hidden; }
+    /* Canvas stretches to bars' natural width; both bars-body and x-axis share that width */
+    .bar-chart-canvas { display: flex; flex-direction: column; width: 100%; height: 100%; }
+    .bars-body { flex: 1; display: flex; align-items: stretch; gap: 2px; min-height: 0; }
+    .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 8px; }
+    .bar-area { flex: 1; width: 100%; display: flex; align-items: flex-end; padding-top: 0.5rem; }
+    .bar { width: 100%; background: var(--c-primary, #03a9f4); border-radius: 3px 3px 0 0; min-height: 2px; transition: height 0.3s; position: relative; }
+    /* Dedicated x-axis strip - labels positioned independently of bar width */
+    .x-axis { flex-shrink: 0; height: 20px; position: relative; }
+    .x-label { position: absolute; transform: translateX(-50%); font-size: 0.6rem; color: var(--text-color-muted, #9e9e9e); white-space: nowrap; top: 3px; }
 
     /* Bar chart tooltip positioned at pointer */
     .bar-tooltip {
@@ -199,20 +355,8 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
     .bar-tooltip.visible { display: block; }
-
-    .pie-wrapper { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 2rem; }
-    .pie-chart {
-      width: 180px; height: 180px; border-radius: 50%; flex-shrink: 0;
-      background: conic-gradient(var(--divider-color, #333) 0% 100%);
-      mask-image: radial-gradient(circle, transparent 58%, black 59%);
-      -webkit-mask-image: radial-gradient(circle, transparent 58%, black 59%);
-      transition: background 0.3s;
-    }
-    .pie-legend { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto; padding-right: 0.5rem; }
-    .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; }
-    .legend-label { display: flex; align-items: center; gap: 0.5rem; color: var(--text-color-muted, #9e9e9e); }
-    .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;}
-    .legend-val { font-weight: 500; }
+    .breakdown-wrapper { display: flex; flex-direction: column; width: 100%; height: 100%; gap: 1.5rem; }
+    .breakdown-item { display: flex; flex-direction: column; gap: 6px; }
 
     /* --- TABLE (DETAILED LIST) --- */
     .details-table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -234,6 +378,165 @@
     .details-table tr:last-child td { border-bottom: none; }
     .details-table tr:hover { background: rgba(255, 255, 255, 0.03); }
     .time-cell { font-family: monospace; font-size: 0.9rem; }
+    /* numeric columns: right-aligned so values line up under their header */
+    .details-table th.num, .details-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* --- SETTINGS VIEW --- */
+    .settings-section { margin-bottom: 2rem; }
+    .settings-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-color-muted, #9e9e9e);
+      font-weight: 600;
+      margin: 0 0 0.25rem 0;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--divider-color, #333);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-label { font-size: 0.9rem; font-weight: 500; }
+    .setting-desc { font-size: 0.75rem; color: var(--text-color-muted, #9e9e9e); margin-top: 2px; }
+    .setting-cats { display: flex; flex-direction: column; gap: 0.6rem; padding: 0.5rem 0 0.75rem 1rem; }
+    /* Toggle switch */
+    .s-toggle { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; user-select: none; }
+    .s-toggle input[type=checkbox] { display: none; }
+    .s-track {
+      width: 36px; height: 20px;
+      background: var(--divider-color, #444);
+      border-radius: 10px;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .s-track::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      top: 2px; left: 2px;
+      transition: transform 0.2s;
+    }
+    .s-toggle input:checked + .s-track { background: var(--c-primary, #03a9f4); }
+    .s-toggle input:checked + .s-track::after { transform: translateX(16px); }
+
+    /* --- PROJECT MULTI-SELECT --- */
+    .project-filter-btn {
+      background: transparent;
+      color: var(--text-color, #fff);
+      border: none;
+      outline: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0;
+      text-align: left;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .project-filter-btn::after {
+      content: '▾';
+      font-size: 0.75rem;
+      opacity: 0.5;
+      flex-shrink: 0;
+    }
+    .chart-toggle {
+      background: var(--card-bg, #1e1e1e);
+      color: var(--text-color-muted, #9e9e9e);
+      border: 1px solid var(--divider-color, #333);
+      border-radius: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chart-toggle.active {
+      background: rgba(3, 169, 244, 0.15);
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 15%, transparent);
+      color: var(--c-primary, #03a9f4);
+      border-color: rgba(3, 169, 244, 0.5);
+      border-color: color-mix(in srgb, var(--c-primary, #03a9f4) 50%, transparent);
+    }
+
+    /* --- BILLABLE DAYS PANEL --- */
+    .billable-panel.hidden { display: none; }
+    .billable-panel {
+      display: flex;
+      align-items: flex-end;
+      gap: 1.25rem;
+      padding: 0.5rem 0 0.75rem;
+      border-bottom: 1px solid var(--divider-color, #333);
+      margin-bottom: 0.25rem;
+      flex-wrap: wrap;
+    }
+    .billable-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .billable-field label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-color-muted, #9e9e9e);
+    }
+    .billable-field input[type=number] {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--divider-color, #444);
+      color: var(--text-color, #fff);
+      font-size: 1rem;
+      width: 80px;
+      outline: none;
+      padding: 2px 0;
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+    .billable-field input[type=number]::-webkit-outer-spin-button,
+    .billable-field input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; }
+    .billable-field input[type=number]:focus { border-bottom-color: var(--c-primary, #03a9f4); }
+    .billable-sep { color: var(--text-color-muted, #9e9e9e); font-size: 0.8rem; padding-bottom: 0.25rem; }
+    .billable-total { color: var(--text-color-muted, #9e9e9e); font-size: 0.8rem; padding-bottom: 0.25rem; margin-left: auto; }
+    .project-filter-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--card-bg, #1e1e1e);
+      border: 1px solid var(--divider-color, #333);
+      border-radius: var(--card-border-radius, 8px);
+      padding: 0.35rem 0;
+      z-index: 200;
+      min-width: 180px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    }
+    .project-filter-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: var(--text-color, #fff);
+      user-select: none;
+    }
+    .project-filter-option:hover { background: rgba(255,255,255,0.05); }
+    .project-filter-option.selected {
+      background: rgba(3, 169, 244, 0.15);
+      background: color-mix(in srgb, var(--c-primary, #03a9f4) 15%, transparent);
+      color: var(--c-primary, #03a9f4);
+    }
+    .project-filter-option input[type=checkbox] { accent-color: var(--c-primary, #03a9f4); cursor: pointer; }
   </style>
 </head>
 <body>
@@ -243,33 +546,43 @@
     <!-- Header -->
     <header class="header">
       <div class="title-area">
-        <h1 class="title">Dashboard</h1>
-        <p class="subtitle">Select a time period to view metrics</p>
+        <h1 class="title" data-i18n="header.title">Dashboard</h1>
+        <p class="subtitle" data-i18n="header.subtitle">Select a time period to view metrics</p>
       </div>
       
       <div class="controls">
         <!-- Custom Date Pickers (Hidden by default) -->
-        <div id="custom-date-container" class="control-box hidden" style="flex-direction: row; gap: var(--s2, 1rem);">
-          <div style="display: flex; flex-direction: column;">
-            <label for="date-from">From</label>
+        <div id="custom-date-container" class="control-box hidden" style="gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="date-from" data-i18n="header.from">From</label>
             <input type="date" id="date-from">
           </div>
-          <div style="display: flex; flex-direction: column;">
-            <label for="date-to">To</label>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <label for="date-to" data-i18n="header.to">To</label>
             <input type="date" id="date-to">
           </div>
         </div>
 
         <!-- Preset Dropdown -->
         <div class="control-box">
-          <label for="date-preset">Period</label>
-          <select id="date-preset">
-            <option value="today" selected>Today</option>
-            <option value="week">Past Week</option>
-            <option value="month">Past Month</option>
-            <option value="year">Past Year</option>
-            <option value="custom">Custom Range...</option>
-          </select>
+          <label for="date-preset" data-i18n="header.period">Period</label>
+          <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 0;">
+            <select id="date-preset" style="appearance: none; -webkit-appearance: none; background: transparent; padding-right: 1rem; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <option value="today" selected>Today</option>
+              <option value="week">Past Week</option>
+              <option value="month">Past Month</option>
+              <option value="year">Past Year</option>
+              <option value="custom">Range</option>
+            </select>
+            <span style="position: absolute; right: 0; font-size: 0.75rem; opacity: 0.5; pointer-events: none;">▾</span>
+          </div>
+        </div>
+
+        <!-- Project Filter (multi-select) -->
+        <div class="control-box project-filter-box" style="position: relative;">
+          <label data-i18n="header.project">Project</label>
+          <button type="button" id="project-filter-btn" class="project-filter-btn">All Projects</button>
+          <div id="project-filter-dropdown" class="project-filter-dropdown hidden"></div>
         </div>
       </div>
     </header>
@@ -278,8 +591,10 @@
     <div class="main-card">
       <!-- Tabs -->
       <div class="tabs">
-        <button id="tab-btn-dashboard" class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
-        <button id="tab-btn-details" class="tab-btn" onclick="switchTab('details')">Detailed List</button>
+        <button type="button" id="tab-btn-dashboard" class="tab-btn active" onclick="switchTab('dashboard')" data-i18n="tab.dashboard">Dashboard</button>
+        <button type="button" id="tab-btn-details" class="tab-btn" onclick="switchTab('details')" data-i18n="tab.details">Detailed List</button>
+        <button type="button" id="tab-btn-billableList" class="tab-btn" onclick="switchTab('billableList')" data-i18n="tab.billableList">Billable List</button>
+        <button type="button" id="tab-btn-settings" class="tab-btn" onclick="switchTab('settings')" data-i18n="tab.settings">Settings</button>
       </div>
 
       <!-- ========================================== -->
@@ -292,18 +607,19 @@
           
           <div class="stat-card">
             <div class="stat-header">
-              <h3 class="stat-title">Total Time Tracked</h3>
-              <div class="stat-icon" style="background: rgba(96, 165, 250, 0.1); color: #60a5fa;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+              <h3 class="stat-title" data-i18n="stat.totalTime">Total Time Tracked</h3>
+              <div class="stat-icon" style="background: rgba(96, 165, 250, 0.1); color: #60a5fa;"><svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
             </div>
             <div class="stat-value-container">
               <span class="stat-value" id="stat-time">0h 0m</span>
+              <span class="stat-suffix" id="stat-active-days"></span>
             </div>
           </div>
 
           <div class="stat-card">
             <div class="stat-header">
-              <h3 class="stat-title">Tasks Completed</h3>
-              <div class="stat-icon" style="background: rgba(74, 222, 128, 0.1); color: #4ade80;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+              <h3 class="stat-title" data-i18n="stat.completed">Tasks Completed</h3>
+              <div class="stat-icon" style="background: rgba(74, 222, 128, 0.1); color: #4ade80;"><svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
             </div>
             <div class="stat-value-container">
               <span class="stat-value" id="stat-tasks">0</span>
@@ -316,23 +632,23 @@
 
           <div class="stat-card">
             <div class="stat-header">
-              <h3 class="stat-title">Overdue Tasks</h3>
-              <div class="stat-icon badge-red"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+              <h3 class="stat-title" data-i18n="stat.overdue">Overdue Tasks</h3>
+              <div class="stat-icon badge-red"><svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
             </div>
             <div class="stat-value-container" style="align-items: center;">
               <div>
                 <span class="stat-value" id="stat-overdue">0</span>
-                <span class="stat-suffix">tasks</span>
+                <span class="stat-suffix" data-i18n="stat.tasks">tasks</span>
               </div>
-              <span class="badge badge-red hidden" id="stat-overdue-label">Needs Attention</span>
+              <span class="badge badge-red hidden" id="stat-overdue-label" data-i18n="stat.needsAttention">Needs Attention</span>
               <div id="overdue-note" class="text-red" style="font-size:0.75rem; margin-top:4px; display:none;"></div>
             </div>
           </div>
 
           <div class="stat-card">
             <div class="stat-header">
-              <h3 class="stat-title">Completed Late</h3>
-              <div class="stat-icon" style="background: rgba(251, 191, 36, 0.1); color: #fbbf24;"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+              <h3 class="stat-title" data-i18n="stat.late">Completed Late</h3>
+              <div class="stat-icon" style="background: rgba(251, 191, 36, 0.1); color: #fbbf24;"><svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
             </div>
             <div class="stat-value-container">
               <span class="stat-value" id="stat-late">0</span>
@@ -346,33 +662,62 @@
           
           <div class="chart-card">
             <div class="card-header">
-              <h3 class="card-title">Daily Trends</h3>
-              <select id="bar-chart-select" class="chart-select">
-                <option value="time">Time Tracked</option>
-                <option value="completed" selected>Tasks Completed</option>
-                <option value="overdue">Tasks Overdue</option>
-                <option value="late">Completed Late</option>
-              </select>
+              <h3 class="card-title" id="bar-chart-title">Daily Trend</h3>
+              <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" title="Toggle Project Breakdown">
+                  <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-color-muted, #9e9e9e);" data-i18n="bar.breakdown">Project colors</span>
+                  <div class="s-toggle" style="margin: 0;">
+                    <input type="checkbox" id="bar-chart-breakdown" checked>
+                    <span class="s-track"></span>
+                  </div>
+                </label>
+                <select id="bar-chart-select" class="chart-select">
+                  <option value="time" data-i18n="bar.time">Time tracked</option>
+                  <option value="completed" selected data-i18n="bar.completed">Completed</option>
+                  <option value="overdue" data-i18n="bar.overdue">Overdue</option>
+                  <option value="late" data-i18n="bar.late">Late</option>
+                  <option value="billable-global" data-i18n="pie.billableGlobal">Billable (Global)</option>
+                  <option value="billable-daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
+                </select>
+              </div>
             </div>
-            <div class="chart-container">
-              <div class="bar-chart" id="bar-chart-container"></div>
+            <div class="chart-container" style="display: flex; flex-direction: row; align-items: stretch; justify-content: flex-start;">
+              <div id="bar-y-axis" style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; width: 45px; font-size: 0.65rem; color: var(--text-color-muted, #9e9e9e); padding-top: 0.5rem; padding-bottom: 20px; padding-right: 8px; border-right: 1px solid var(--divider-color, #333); margin-right: 8px; box-sizing: border-box; flex-shrink: 0;"></div>
+              <div class="bar-chart" id="bar-chart-container" style="flex: 1; min-width: 0;"></div>
             </div>
           </div>
 
           <div class="chart-card">
             <div class="card-header">
-              <h3 class="card-title">Project Breakdown</h3>
-              <select id="pie-chart-select" class="chart-select">
-                <option value="time">Time Tracked</option>
-                <option value="completed" selected>Tasks Completed</option>
-                <option value="overdue">Tasks Overdue</option>
-                <option value="late">Completed Late</option>
+              <h3 class="card-title" data-i18n="pie.title">Project Breakdown</h3>
+              <select id="breakdown-chart-select" class="chart-select">
+                <option value="time">Time tracked</option>
+                <option value="completed" selected>Completed</option>
+                <option value="overdue">Overdue</option>
+                <option value="late" data-i18n="bar.late">Late</option>
+                <option value="billable-global" data-i18n="pie.billableGlobal">Billable (Global)</option>
+                <option value="billable-daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
               </select>
             </div>
-            <div class="chart-container">
-              <div class="pie-wrapper">
-                <div class="pie-chart" id="pie-chart-element"></div>
-                <div class="pie-legend" id="pie-legend-container"></div>
+            <div id="billable-panel" class="billable-panel hidden">
+              <div class="billable-field">
+                <label for="billable-days" data-i18n="billable.days">Billable days</label>
+                <input type="number" id="billable-days" min="0.01" step="0.5" placeholder="-">
+              </div>
+              <span class="billable-sep" data-i18n="billable.sep">= total ÷</span>
+              <div class="billable-field">
+                <label for="billable-hpd" data-i18n="billable.hpd">Hours / day</label>
+                <input type="number" id="billable-hpd" min="0.01" step="0.25" value="8">
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-left:auto;">
+                <span class="billable-total" id="billable-total-display"></span>
+                <span id="billable-avg-display" style="font-size:0.7rem;color:var(--text-color-muted,#9e9e9e);"></span>
+              </div>
+            </div>
+            <div class="chart-container" style="align-items: flex-start; padding-top: 1rem;">
+              <div class="breakdown-wrapper" id="breakdown-wrapper">
+                <div id="breakdown-bar" class="breakdown-bar"></div>
+                <div id="breakdown-list" class="breakdown-list"></div>
               </div>
             </div>
           </div>
@@ -387,17 +732,174 @@
         <table class="details-table">
           <thead>
             <tr>
-              <th data-sort="date">Date</th>
-              <th data-sort="projectName">Project</th>
-              <th data-sort="taskTitle">Task</th>
-              <th data-sort="timeSpent">Time Spent</th>
-              <th data-sort="status">Status</th>
+              <th data-sort="date" data-i18n="table.date">Date</th>
+              <th data-sort="projectName" data-i18n="table.project">Project</th>
+              <th data-sort="taskTitle" data-i18n="table.task">Task</th>
+              <th data-sort="timeSpent" data-i18n="table.timeSpent">Time Spent</th>
+              <th data-sort="status" data-i18n="table.status">Status</th>
             </tr>
           </thead>
           <tbody id="details-table-body">
             <!-- Rows injected by JS -->
           </tbody>
         </table>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 2.5: BILLABLE LIST                    -->
+      <!-- ========================================== -->
+      <div id="view-billableList" class="view-content no-padding hidden">
+        <div class="billable-toolbar">
+          <h3 class="billable-toolbar-title" data-i18n="tab.billableList">Billable List</h3>
+          <div class="billable-toolbar-controls">
+            <div class="control-box billable-hours-box">
+              <label for="billable-list-hours" data-i18n="billable.hpd">Hours / day</label>
+              <input type="number" id="billable-list-hours" min="0.01" step="0.25" value="8">
+            </div>
+            <select id="billable-table-select" class="chart-select" onchange="renderBillableTable(latestMetrics)">
+              <option value="daily" data-i18n="pie.billableDaily">Billable (Daily)</option>
+              <option value="global" data-i18n="pie.billableGlobal">Billable (Global)</option>
+            </select>
+          </div>
+        </div>
+        <div id="billable-groups" class="billable-groups"></div>
+        <table class="details-table" id="billable-table">
+          <thead id="billable-table-head">
+            <!-- Headers injected by JS -->
+          </thead>
+          <tbody id="billable-table-body">
+            <!-- Rows injected by JS -->
+          </tbody>
+          <tfoot id="billable-table-foot">
+            <!-- Per-project totals injected by JS (daily mode) -->
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- VIEW 3: SETTINGS                           -->
+      <!-- ========================================== -->
+      <div id="view-settings" class="view-content hidden">
+        <div style="max-width: 560px;">
+
+          <div class="settings-section">
+            <h3 class="settings-section-title" data-i18n="settings.languageSection">Language</h3>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label" data-i18n="settings.language">Language</div>
+                <div class="setting-desc" data-i18n="settings.languageDesc">Interface language</div>
+              </div>
+              <select id="setting-language" class="chart-select">
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title" data-i18n="settings.trendChart">Trend Chart</h3>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label" data-i18n="settings.grouping">Grouping</div>
+                <div class="setting-desc" data-i18n="settings.groupingDesc">Time grain used on the x-axis</div>
+              </div>
+              <select id="setting-bar-grouping" class="chart-select">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+
+            <div class="setting-row" id="setting-bar-agg-row">
+              <div>
+                <div class="setting-label" data-i18n="settings.measure">Measure</div>
+                <div class="setting-desc" data-i18n="settings.measureDesc">How values are computed per period</div>
+              </div>
+              <select id="setting-bar-aggregation" class="chart-select">
+                <option value="total">Total</option>
+                <option value="avg-per-day">Avg / Calendar Day</option>
+                <option value="avg-per-workday">Avg / Workday (M–F)</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label" data-i18n="settings.dateAxisFmt">Date axis format</div>
+                <div class="setting-desc" data-i18n="settings.dateAxisFmtDesc">Format shown below each bar (applies to daily and weekly groupings)</div>
+              </div>
+              <select id="setting-bar-date-fmt" class="chart-select">
+                <option value="MM-DD">MM-DD (02-22)</option>
+                <option value="DD/MM">DD/MM (22/02)</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title" data-i18n="settings.dateFormats">Date Formats</h3>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label" data-i18n="settings.tableDate">Detailed List - date column</div>
+                <div class="setting-desc" data-i18n="settings.tableDateDesc">Format of the date column in the detailed list</div>
+              </div>
+              <select id="setting-table-date-fmt" class="chart-select">
+                <option value="en-US">Feb 22, 2026</option>
+                <option value="DD/MM/YYYY">22/02/2026</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div class="settings-section">
+            <h3 class="settings-section-title" data-i18n="settings.projectBreakdown">Project Breakdown</h3>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label" data-i18n="settings.showPct">Show percentages alongside values</div>
+                <div class="setting-desc" data-i18n="settings.showPctDesc">Shows each project's share alongside its value</div>
+              </div>
+              <label class="s-toggle">
+                <input type="checkbox" id="setting-show-pct">
+                <span class="s-track"></span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div>
+                <div class="setting-label" data-i18n="settings.showTotal">Show total row</div>
+                <div class="setting-desc" data-i18n="settings.showTotalDesc">Displays the sum at the bottom of the legend</div>
+              </div>
+              <label class="s-toggle">
+                <input type="checkbox" id="setting-show-total" checked>
+                <span class="s-track"></span>
+              </label>
+            </div>
+
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+              <div>
+                <div class="setting-label" data-i18n="settings.visibleCats">Visible categories</div>
+                <div class="setting-desc" data-i18n="settings.visibleCatsDesc">Choose which breakdown types appear in the selector</div>
+              </div>
+              <div class="setting-cats">
+                <label class="s-toggle"><input type="checkbox" id="cat-time" checked><span class="s-track"></span><span data-i18n="settings.catTime">Time Tracked</span></label>
+                <label class="s-toggle"><input type="checkbox" id="cat-completed" checked><span class="s-track"></span><span data-i18n="settings.catCompleted">Tasks Completed</span></label>
+                <label class="s-toggle"><input type="checkbox" id="cat-overdue" checked><span class="s-track"></span><span data-i18n="settings.catOverdue">Tasks Overdue</span></label>
+                <label class="s-toggle"><input type="checkbox" id="cat-late" checked><span class="s-track"></span><span data-i18n="settings.catLate">Completed Late</span></label>
+                <label class="s-toggle"><input type="checkbox" id="cat-billable-global" checked><span class="s-track"></span><span data-i18n="settings.catBillableGlobal">Billable (Global)</span></label>
+                <label class="s-toggle"><input type="checkbox" id="cat-billable-daily" checked><span class="s-track"></span><span data-i18n="settings.catBillableDaily">Billable (Daily)</span></label>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding-top: 1.5rem; border-top: 1px solid var(--divider-color, #333); margin-top: 0.5rem;">
+            <button type="button" onclick="resetAll()" data-i18n="settings.reset" style="background: rgba(248,113,113,0.08); color: #f87171; border: 1px solid rgba(248,113,113,0.25); border-radius: 6px; padding: 0.45rem 1.1rem; cursor: pointer; font-size: 0.875rem;">
+              Reset all settings &amp; filters to defaults
+            </button>
+          </div>
+
+        </div>
       </div>
 
     </div>
@@ -408,26 +910,300 @@
 
   <script>
     console.log("[sp-dashboard] Dashboard script initialized");
+
+    // --- INTERNATIONALIZATION ---
+    let currentLang = 'en';
+    const TRANSLATIONS = {
+      en: {
+        'header.title': 'Dashboard',
+        'header.subtitle': 'Select a time period to view metrics',
+        'header.from': 'From',
+        'header.to': 'To',
+        'header.period': 'Period',
+        'header.project': 'Project',
+        'header.allProjects': 'All Projects',
+        'preset.today': 'Today',
+        'preset.week': 'Past Week',
+        'preset.month': 'Past Month',
+        'preset.year': 'Past Year',
+        'preset.custom': 'Range',
+        'tab.dashboard': 'Dashboard',
+        'tab.details': 'Detailed List',
+        'tab.billableList': 'Billable List',
+        'tab.settings': 'Settings',
+        'stat.totalTime': 'Time',
+        'stat.completed': 'Tasks Completed',
+        'stat.overdue': 'Tasks Overdue',
+        'stat.late': 'Completed Late',
+        'stat.tasks': 'tasks',
+        'stat.needsAttention': 'Needs Attention',
+        'bar.daily': 'Daily Trend',
+        'bar.weekly': 'Weekly Trend',
+        'bar.monthly': 'Monthly Trend',
+        'bar.time': 'Time tracked',
+        'bar.completed': 'Completed',
+        'bar.overdue': 'Overdue',
+        'bar.late': 'Late',
+        'bar.breakdown': 'Project colors',
+        'pie.title': 'Project Breakdown',
+        'pie.time': 'Time tracked',
+        'pie.completed': 'Completed',
+        'pie.overdue': 'Overdue',
+        'pie.late': 'Late',
+        'pie.billable': 'Work Days',
+        'pie.billableGlobal': 'Billable (Global)',
+        'pie.billableDaily': 'Billable (Daily)',
+        'pie.noData': 'No data for selected period',
+        'pie.total': 'Total',
+        'billable.days': 'Work days',
+        'billable.hpd': 'Hours / day',
+        'billable.sep': '= total ÷',
+        'billable.dayUnit': 'd',
+        'billable.dayAvg': '/ day avg',
+        'billable.total': 'total',
+        'table.date': 'Date',
+        'table.project': 'Project',
+        'table.task': 'Task',
+        'table.timeSpent': 'Time Spent',
+        'table.hours': 'Hours',
+        'table.toDeclare': 'To Declare',
+        'table.total': 'Total',
+        'table.selection': 'Selection',
+        'table.group': 'Group',
+        'billable.groups': 'Groups',
+        'billable.ungroupAll': 'Clear groups',
+        'table.status': 'Status',
+        'table.noData': 'No tracked time found for this date range.',
+        'badge.late': 'Late',
+        'badge.overdue': 'Overdue',
+        'badge.done': 'Done',
+        'badge.inProgress': 'In Progress',
+        'settings.languageSection': 'Language',
+        'settings.language': 'Language',
+        'settings.languageDesc': 'Interface language',
+        'settings.trendChart': 'Trend Chart',
+        'settings.grouping': 'Grouping',
+        'settings.groupingDesc': 'Time grain used on the x-axis',
+        'settings.daily': 'Daily',
+        'settings.weekly': 'Weekly',
+        'settings.monthly': 'Monthly',
+        'settings.measure': 'Measure',
+        'settings.measureDesc': 'How values are computed per period',
+        'settings.total': 'Total',
+        'settings.avgCalDay': 'Avg / Calendar Day',
+        'settings.avgWorkday': 'Avg / Workday (M–F)',
+        'settings.dateAxisFmt': 'Date axis format',
+        'settings.dateAxisFmtDesc': 'Format shown below each bar (applies to daily and weekly groupings)',
+        'settings.dateFormats': 'Date Formats',
+        'settings.tableDate': 'Detailed List - date column',
+        'settings.tableDateDesc': 'Format of the date column in the detailed list',
+        'settings.projectBreakdown': 'Project Breakdown',
+        'settings.showPct': 'Show percentages alongside values',
+        'settings.showPctDesc': "Shows each project's share alongside its value",
+        'settings.showTotal': 'Show total row',
+        'settings.showTotalDesc': 'Displays the sum at the bottom of the legend',
+        'settings.visibleCats': 'Visible categories',
+        'settings.visibleCatsDesc': 'Choose which breakdown types appear in the selector',
+        'settings.catTime': 'Time Tracked',
+        'settings.catCompleted': 'Tasks Completed',
+        'settings.catOverdue': 'Tasks Overdue',
+        'settings.catLate': 'Completed Late',
+        'settings.catBillableGlobal': 'Billable (Global)',
+        'settings.catBillableDaily': 'Billable (Daily)',
+        'settings.reset': 'Reset all settings & filters to defaults',
+        'dynamic.total': (n) => `/ ${n} total`,
+        'dynamic.projects': (n) => `${n} projects`,
+        'dynamic.unplanned': (n) => `${n} task(s) have no due date so overdue is unavailable`,
+        'dynamic.uncategorized': 'Uncategorized',
+        'dynamic.activeDays': (n) => `${n} active days`,
+        'dynamic.untitledTask': 'Untitled Task',
+        'dynamic.weekOf': (d) => `w/c ${d}`,
+        'dynamic.tasks': (n) => `${Math.round(n)} tasks`,
+        'months': ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+      },
+      fr: {
+        'header.title': 'Tableau de bord',
+        'header.subtitle': 'Sélectionnez une période pour analyser vos métriques',
+        'header.from': 'Du',
+        'header.to': 'Au',
+        'header.period': 'Période',
+        'header.project': 'Projet',
+        'header.allProjects': 'Tous les projets',
+        'preset.today': "Aujourd'hui",
+        'preset.week': '7 derniers jours',
+        'preset.month': '31 derniers jours',
+        'preset.year': 'Année écoulée',
+        'preset.custom': 'Range',
+        'tab.dashboard': 'Vue d’ensemble',
+        'tab.details': 'Liste détaillée',
+        'tab.billableList': 'Liste des jours travaillés',
+        'tab.settings': 'Paramètres',
+        'stat.totalTime': 'Heures',
+        'stat.completed': 'Tâches terminées',
+        'stat.overdue': 'Tâches en retard',
+        'stat.late': 'Terminées hors délai',
+        'stat.tasks': 'tâches',
+        'stat.needsAttention': 'À traiter en priorité',
+        'bar.daily': 'Tendance journalière',
+        'bar.weekly': 'Tendance hebdomadaire',
+        'bar.monthly': 'Tendance mensuelle',
+        'bar.time': 'Temps enregistré',
+        'bar.completed': 'Terminées',
+        'bar.overdue': 'En retard',
+        'bar.late': 'Hors délai',
+        'bar.breakdown': 'Couleurs par projet',
+        'pie.title': 'Répartition par projet',
+        'pie.time': 'Temps enregistré',
+        'pie.completed': 'Terminées',
+        'pie.overdue': 'En retard',
+        'pie.late': 'Hors délai',
+        'pie.billable': 'Jours travaillés',
+        'pie.billableGlobal': 'Facturable (Global)',
+        'pie.billableDaily': 'Facturable (Par jour)',
+        'pie.noData': 'Aucune donnée pour la période sélectionnée',
+        'pie.total': 'Total',
+        'billable.days': 'Jours de travail',
+        'billable.hpd': 'Heures / jour',
+        'billable.sep': '= total ÷',
+        'billable.dayUnit': 'j',
+        'billable.dayAvg': '/ j moy.',
+        'billable.total': 'total',
+        'table.date': 'Date',
+        'table.project': 'Projet',
+        'table.task': 'Tâche',
+        'table.timeSpent': 'Temps passé',
+        'table.hours': 'Heures',
+        'table.toDeclare': 'À déclarer',
+        'table.total': 'Total',
+        'table.selection': 'Sélection',
+        'table.group': 'Groupe',
+        'billable.groups': 'Groupes',
+        'billable.ungroupAll': 'Tout dégrouper',
+        'table.status': 'Statut',
+        'table.noData': 'Aucun temps enregistré trouvé pour cette période.',
+        'badge.late': 'Hors délai',
+        'badge.overdue': 'En retard',
+        'badge.done': 'Terminé',
+        'badge.inProgress': 'En cours',
+        'settings.languageSection': 'Langue',
+        'settings.language': 'Langue',
+        'settings.languageDesc': "Langue de l'interface",
+        'settings.trendChart': 'Graphique de tendance',
+        'settings.grouping': 'Périodicité',
+        'settings.groupingDesc': "Axe de temps utilisé (abscisse)",
+        'settings.daily': 'Par jour',
+        'settings.weekly': 'Par semaine',
+        'settings.monthly': 'Par mois',
+        'settings.measure': 'Calcul des moyennes',
+        'settings.measureDesc': 'Méthode de calcul des valeurs par période',
+        'settings.total': 'Cumul total',
+        'settings.avgCalDay': 'Moy. / jour civil',
+        'settings.avgWorkday': 'Moy. / jour ouvré (Lun–Ven)',
+        'settings.dateAxisFmt': "Format des dates sur l'axe",
+        'settings.dateAxisFmtDesc': 'Format sous chaque barre (groupements par jour et par semaine)',
+        'settings.dateFormats': 'Formats de date',
+        'settings.tableDate': 'Liste détaillée - Colonne Date',
+        'settings.tableDateDesc': 'Format de la date dans le tableau de la liste détaillée',
+        'settings.projectBreakdown': 'Répartition par projet',
+        'settings.showPct': 'Afficher les pourcentages',
+        'settings.showPctDesc': 'Affiche la part relative de chaque projet à côté de sa valeur',
+        'settings.showTotal': 'Afficher la ligne Total',
+        'settings.showTotalDesc': 'Affiche la somme globale au bas de la légende',
+        'settings.visibleCats': 'Catégories visibles',
+        'settings.visibleCatsDesc': 'Choisir les métriques à afficher dans le sélecteur',
+        'settings.catTime': 'Temps enregistré',
+        'settings.catCompleted': 'Tâches terminées',
+        'settings.catOverdue': 'Tâches en retard',
+        'settings.catLate': 'Terminées hors délai',
+        'settings.catBillableGlobal': 'Facturable (Global)',
+        'settings.catBillableDaily': 'Facturable (Par jour)',
+        'settings.reset': 'Réinitialiser tous les filtres et paramètres par défaut',
+        'dynamic.total': (n) => `/ ${n} au total`,
+        'dynamic.projects': (n) => `${n} projets`,
+        'dynamic.unplanned': (n) => `${n} tâche(s) sans date d'échéance (calcul du retard impossible)`,
+        'dynamic.uncategorized': 'Non catégorisé',
+        'dynamic.activeDays': (n) => `${n} jours actifs`,
+        'dynamic.untitledTask': 'Tâche sans titre',
+        'dynamic.weekOf': (d) => `Sem. du ${d}`,
+        'dynamic.tasks': (n) => `${Math.round(n)} tâches`,
+        'months': ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'],
+      },
+    };
+    const t = (key, ...args) => {
+      const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.en;
+      const val = key in dict ? dict[key] : (TRANSLATIONS.en[key] ?? key);
+      return typeof val === 'function' ? val(...args) : val;
+    };
+
     // --- UTILITIES ---
     const formatTime = (milliseconds) => {
       if (!milliseconds) return '0h 0m';
-      const totalMinutes = Math.floor(milliseconds / 60000);
+      // keep a single sign in front for negative values ("-1h 2m", not "-1h -2m")
+      const sign = milliseconds < 0 ? '-' : '';
+      const totalMinutes = Math.floor(Math.abs(milliseconds) / 60000);
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
-      return `${hours}h ${minutes}m`;
+      return `${sign}${hours}h ${minutes}m`;
     };
 
     const formatDateShort = (dateStr) => {
-      const d = new Date(dateStr + "T00:00:00"); 
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const d = new Date(`${dateStr}T00:00:00`);
+      const locale = currentLang === 'fr' ? 'fr-FR' : 'en-US';
+      return d.toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const formatBarLabel = (dateStr) => {
+      const fmt = document.getElementById('setting-bar-date-fmt');
+      if (fmt && fmt.value === 'DD/MM') return `${dateStr.substring(8)}/${dateStr.substring(5, 7)}`;
+      return dateStr.substring(5); // MM-DD default
+    };
+
+    const formatMonthLabel = (ym) => {
+      const months = t('months');
+      const [y, m] = ym.split('-');
+      return `${months[parseInt(m, 10) - 1]} '${y.slice(2)}`;
+    };
+
+    const getBarGrouping = () => document.getElementById('setting-bar-grouping')?.value ?? 'daily';
+    const getBarAggregation = () => document.getElementById('setting-bar-aggregation')?.value ?? 'total';
+
+    const syncAggRow = () => {
+      const row = document.getElementById('setting-bar-agg-row');
+      if (row) row.style.display = getBarGrouping() === 'daily' ? 'none' : '';
+    };
+
+    const getBarChartTitle = () =>
+      ({ daily: t('bar.daily'), weekly: t('bar.weekly'), monthly: t('bar.monthly') })[getBarGrouping()] ?? t('bar.daily');
+
+    const updateBarChartTitle = () => {
+      const el = document.getElementById('bar-chart-title');
+      if (el) el.textContent = getBarChartTitle();
+    };
+
+    const formatTableDate = (dateStr) => {
+      const fmt = document.getElementById('setting-table-date-fmt');
+      if (fmt && fmt.value === 'DD/MM/YYYY') {
+        const [y, m, d] = dateStr.split('-');
+        return `${d}/${m}/${y}`;
+      }
+      return formatDateShort(dateStr);
+    };
+
+    // Always work in local dates to match how SP stores timeSpentOnDay keys
+    const toLocalDateStr = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
     };
 
     const getDatesInRange = (startDate, endDate) => {
       const dates = [];
-      let currentDate = new Date(startDate);
-      const end = new Date(endDate);
+      // Parse as local midnight so getDate/setDate stay in local time
+      const currentDate = new Date(`${startDate}T00:00:00`);
+      const end = new Date(`${endDate}T00:00:00`);
       while (currentDate <= end) {
-        dates.push(new Date(currentDate).toISOString().split('T')[0]);
+        dates.push(toLocalDateStr(currentDate));
         currentDate.setDate(currentDate.getDate() + 1);
       }
       return dates;
@@ -435,11 +1211,10 @@
 
     // --- TAB LOGIC ---
     const switchTab = (tabId) => {
-      document.getElementById('view-dashboard').classList.add('hidden');
-      document.getElementById('view-details').classList.add('hidden');
-      document.getElementById('tab-btn-dashboard').classList.remove('active');
-      document.getElementById('tab-btn-details').classList.remove('active');
-
+      ['dashboard', 'details', 'billableList', 'settings'].forEach(id => {
+        document.getElementById(`view-${id}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${id}`).classList.remove('active');
+      });
       document.getElementById(`view-${tabId}`).classList.remove('hidden');
       document.getElementById(`tab-btn-${tabId}`).classList.add('active');
     };
@@ -448,7 +1223,190 @@
     let cachedTasks = [];
     let cachedProjects = [];
     let latestMetrics = null;
-    let currentSort = { key: 'date', dir: 'desc' }; // sorting state for details table
+    const currentSort = { key: 'date', dir: 'desc' };
+    // entries in the order currently displayed, so a new sort keeps ties in
+    // their previous relative order (stable multi-level sorting)
+    let currentDetailEntries = null;
+    let lastEditedBillable = 'hpd';
+
+    // --- SETTINGS PERSISTENCE ---
+    const SETTINGS_KEY = 'sp-dashboard-settings';
+    const getSettingsPayload = () => ({
+          barGrouping:       document.getElementById('setting-bar-grouping').value,
+          barAggregation:    document.getElementById('setting-bar-aggregation').value,
+          barDateFmt:        document.getElementById('setting-bar-date-fmt').value,
+          tableDateFmt:      document.getElementById('setting-table-date-fmt').value,
+          showPct:           document.getElementById('setting-show-pct').checked,
+          showTotal:         document.getElementById('setting-show-total').checked,
+          catTime:           document.getElementById('cat-time').checked,
+          catCompleted:      document.getElementById('cat-completed').checked,
+          catOverdue:        document.getElementById('cat-overdue').checked,
+          catLate:           document.getElementById('cat-late').checked,
+          catBillableGlobal: document.getElementById('cat-billable-global').checked,
+          catBillableDaily:  document.getElementById('cat-billable-daily').checked,
+          billableHpd:       document.getElementById('billable-hpd').value,
+          billableDays:      document.getElementById('billable-days').value,
+          billableListHours: document.getElementById('billable-list-hours').value,
+          lastEditedBillable,
+          lang:              currentLang,
+    });
+    const saveSettings = () => {
+      try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(getSettingsPayload())); }
+      catch (e) { /* localStorage unavailable in some iframe contexts */ }
+      schedulePersistSynced();
+    };
+    const applySettings = (s) => {
+        if (s.barGrouping)                document.getElementById('setting-bar-grouping').value    = s.barGrouping;
+        if (s.barAggregation)             document.getElementById('setting-bar-aggregation').value = s.barAggregation;
+        if (s.barDateFmt)                 document.getElementById('setting-bar-date-fmt').value    = s.barDateFmt;
+        if (s.tableDateFmt)               document.getElementById('setting-table-date-fmt').value = s.tableDateFmt;
+        if (s.showPct      !== undefined) document.getElementById('setting-show-pct').checked     = s.showPct;
+        if (s.showTotal    !== undefined) document.getElementById('setting-show-total').checked   = s.showTotal;
+        if (s.catTime      !== undefined) document.getElementById('cat-time').checked             = s.catTime;
+        if (s.catCompleted !== undefined) document.getElementById('cat-completed').checked        = s.catCompleted;
+        if (s.catOverdue   !== undefined) document.getElementById('cat-overdue').checked          = s.catOverdue;
+        if (s.catLate      !== undefined) document.getElementById('cat-late').checked             = s.catLate;
+        if (s.catBillableGlobal !== undefined) document.getElementById('cat-billable-global').checked = s.catBillableGlobal;
+        if (s.catBillableDaily  !== undefined) document.getElementById('cat-billable-daily').checked  = s.catBillableDaily;
+        if (s.billableHpd)                document.getElementById('billable-hpd').value           = s.billableHpd;
+        if (s.billableDays)               document.getElementById('billable-days').value          = s.billableDays;
+        if (s.billableListHours)          document.getElementById('billable-list-hours').value    = s.billableListHours;
+        if (s.lastEditedBillable)         lastEditedBillable = s.lastEditedBillable;
+        if (s.lang) { currentLang = s.lang; document.getElementById('setting-language').value = s.lang; }
+    };
+    const loadSettings = () => {
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (raw) applySettings(JSON.parse(raw));
+      } catch (e) { /* ignore parse errors */ }
+    };
+
+    // --- SESSION PERSISTENCE (view state) ---
+    const SESSION_KEY = 'sp-dashboard-session';
+    let pendingProjectRestore = null; // applied inside updateProjectFilter on next call
+
+    const getSessionPayload = () => {
+      const dropdown = document.getElementById('project-filter-dropdown');
+      const allCb = dropdown.querySelector('input[value="all"]');
+      const isAll = !allCb || allCb.checked;
+      const selectedIds = isAll ? [] :
+        [...dropdown.querySelectorAll('input[type=checkbox]:not([value="all"]):checked')].map(cb => cb.value);
+      return {
+        datePreset:   document.getElementById('date-preset').value,
+        dateFrom:     document.getElementById('date-from').value,
+        dateTo:       document.getElementById('date-to').value,
+        projectAll:   isAll,
+        projectIds:   selectedIds,
+        barChartType: document.getElementById('bar-chart-select').value,
+        barChartBreakdown: document.getElementById('bar-chart-breakdown').checked,
+        pieChartType: document.getElementById('breakdown-chart-select').value,
+        billableGroups: { ...billableGroupOf },
+      };
+    };
+    const saveSession = () => {
+      try { localStorage.setItem(SESSION_KEY, JSON.stringify(getSessionPayload())); }
+      catch (e) { /* ignore */ }
+      schedulePersistSynced();
+    };
+
+    const applySession = (s) => {
+        if (s.datePreset) {
+          document.getElementById('date-preset').value = s.datePreset;
+          if (s.datePreset === 'custom') document.getElementById('custom-date-container').classList.remove('hidden');
+        }
+        if (s.dateFrom) document.getElementById('date-from').value = s.dateFrom;
+        if (s.dateTo)   document.getElementById('date-to').value   = s.dateTo;
+        if (s.barChartType) document.getElementById('bar-chart-select').value = s.barChartType;
+        if (s.barChartBreakdown !== undefined) document.getElementById('bar-chart-breakdown').checked = s.barChartBreakdown;
+        if (s.pieChartType) {
+          const sel = document.getElementById('breakdown-chart-select');
+          if ([...sel.options].some(o => o.value === s.pieChartType)) sel.value = s.pieChartType;
+        }
+        if (s.projectIds !== undefined) {
+          pendingProjectRestore = { all: s.projectAll, ids: new Set(s.projectIds) };
+        }
+        if (s.billableGroups && typeof s.billableGroups === 'object') {
+          Object.keys(billableGroupOf).forEach(k => delete billableGroupOf[k]);
+          Object.entries(s.billableGroups).forEach(([p, gid]) => { billableGroupOf[p] = Number(gid); });
+        } else if (Array.isArray(s.billableSelection)) {
+          // sessions saved before groups existed had a single selection
+          s.billableSelection.forEach(p => { billableGroupOf[p] = 1; });
+        }
+    };
+    const loadSession = () => {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (raw) applySession(JSON.parse(raw));
+      } catch (e) { /* ignore */ }
+    };
+
+    // --- SYNCED PERSISTENCE (SuperProductivity plugin API) ---
+    // localStorage does not reliably survive SP's sandboxed iframe reloads, so
+    // settings and view state are also persisted through the plugin API
+    let persistSyncedTimer = null;
+    const schedulePersistSynced = () => {
+      if (!window.PluginAPI || !window.PluginAPI.persistDataSynced) return;
+      clearTimeout(persistSyncedTimer);
+      persistSyncedTimer = setTimeout(() => {
+        try {
+          window.PluginAPI.persistDataSynced(JSON.stringify({
+            settings: getSettingsPayload(),
+            session: getSessionPayload(),
+          }));
+        } catch (e) { console.warn('[sp-dashboard] persistDataSynced failed', e); }
+      }, 300);
+    };
+    const loadSyncedPersisted = async () => {
+      if (!window.PluginAPI || !window.PluginAPI.loadSyncedData) return null;
+      try {
+        const raw = await window.PluginAPI.loadSyncedData();
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        console.warn('[sp-dashboard] loadSyncedData failed', e);
+        return null;
+      }
+    };
+
+    const resetAll = () => {
+      try {
+        localStorage.removeItem(SETTINGS_KEY);
+        localStorage.removeItem(SESSION_KEY);
+      } catch (e) { /* ignore */ }
+      try {
+        if (window.PluginAPI && window.PluginAPI.persistDataSynced) window.PluginAPI.persistDataSynced('');
+      } catch (e) { /* ignore */ }
+      // Settings defaults
+      document.getElementById('setting-bar-grouping').value      = 'daily';
+      document.getElementById('setting-bar-aggregation').value   = 'total';
+      document.getElementById('setting-bar-date-fmt').value     = 'MM-DD';
+      document.getElementById('setting-table-date-fmt').value   = 'en-US';
+      document.getElementById('setting-show-pct').checked       = false;
+      document.getElementById('setting-show-total').checked     = true;
+      ['cat-time','cat-completed','cat-overdue','cat-late','cat-billable-global','cat-billable-daily'].forEach(id => {
+        document.getElementById(id).checked = true;
+      });
+      document.getElementById('billable-hpd').value = '8';
+      document.getElementById('billable-days').value = '';
+      document.getElementById('billable-list-hours').value = '8';
+      lastEditedBillable = 'hpd';
+      currentLang = 'en';
+      document.getElementById('setting-language').value = 'en';
+      applyTranslations();
+      // Session defaults
+      document.getElementById('date-preset').value = 'today';
+      document.getElementById('custom-date-container').classList.add('hidden');
+      // Reset project filter to All
+      const dd = document.getElementById('project-filter-dropdown');
+      dd.querySelectorAll('input[type=checkbox]').forEach(cb => { cb.checked = cb.value === 'all'; });
+      updateProjectFilterBtn();
+      // Rebuild pie select and reset
+      syncPieCategories();
+      document.getElementById('bar-chart-select').value = 'completed';
+      document.getElementById('breakdown-chart-select').value = 'completed';
+      updateProjectBreakdown();
+      processData(cachedTasks, cachedProjects);
+    };
 
     // helper to sort table entries by given field/key
     const sortEntries = (entries, key, dir) => {
@@ -498,15 +1456,39 @@
             currentSort.dir = 'asc';
           }
           if (latestMetrics) {
-            const sorted = sortEntries(latestMetrics.tableEntries, currentSort.key, currentSort.dir);
-            renderTable(sorted);
+            currentDetailEntries = sortEntries(currentDetailEntries || latestMetrics.tableEntries, currentSort.key, currentSort.dir);
+            renderTable(currentDetailEntries);
           }
           updateSortIndicators();
         });
       });
     };
+    // the detailed-list header is static, attach the sort handlers exactly once
+    attachSortHandlers();
     // Base colors matching the UI kit logic (fallback hexes just in case)
     const PIE_COLORS = ['#03a9f4', '#b388ff', '#4ade80', '#f472b6', '#fbbf24', '#f87171', '#34d399', '#818cf8', '#a78bfa'];
+
+    const applyTranslations = () => {
+      document.documentElement.lang = currentLang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+      });
+      const setOpts = (id, keys) => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const val = sel.value;
+        [...sel.options].forEach((opt, i) => { if (keys[i]) opt.textContent = t(keys[i]); });
+        sel.value = val;
+      };
+      setOpts('date-preset', ['preset.today','preset.week','preset.month','preset.year','preset.custom']);
+      setOpts('bar-chart-select', ['bar.time','bar.completed','bar.overdue','bar.late','pie.billable']);
+      setOpts('setting-bar-grouping', ['settings.daily','settings.weekly','settings.monthly']);
+      setOpts('setting-bar-aggregation', ['settings.total','settings.avgCalDay','settings.avgWorkday']);
+      syncPieCategories();
+      updateBarChartTitle();
+      updateProjectFilterBtn();
+      if (latestMetrics) updateDashboardUI(latestMetrics);
+    };
 
     // --- INITIALIZE UI ---
     const todayObjInit = new Date();
@@ -525,23 +1507,181 @@
         customContainer.classList.add('hidden');
       }
       processData(cachedTasks, cachedProjects);
+      saveSession();
     });
 
-    document.getElementById('date-from').addEventListener('change', () => processData(cachedTasks, cachedProjects));
-    document.getElementById('date-to').addEventListener('change', () => processData(cachedTasks, cachedProjects));
-    document.getElementById('bar-chart-select').addEventListener('change', () => updateBarChart());
-    document.getElementById('pie-chart-select').addEventListener('change', () => updatePieChart());
+    document.getElementById('date-from').addEventListener('change', () => { processData(cachedTasks, cachedProjects); saveSession(); });
+    document.getElementById('date-to').addEventListener('change', () => { processData(cachedTasks, cachedProjects); saveSession(); });
+    document.getElementById('project-filter-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('project-filter-dropdown').classList.toggle('hidden');
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.project-filter-box')) {
+        document.getElementById('project-filter-dropdown').classList.add('hidden');
+      }
+    });
+    document.getElementById('project-filter-dropdown').addEventListener('change', (e) => {
+      const cb = e.target;
+      if (!cb || cb.type !== 'checkbox') return;
+      const dropdown = document.getElementById('project-filter-dropdown');
+      const allCb = dropdown.querySelector('input[value="all"]');
+      const others = [...dropdown.querySelectorAll('input[type=checkbox]:not([value="all"])')];
+      if (cb.value === 'all') {
+        if (cb.checked) others.forEach(o => { o.checked = false; });
+        else if (!others.some(o => o.checked)) cb.checked = true;
+      } else {
+        if (cb.checked && allCb) allCb.checked = false;
+        else if (!others.some(o => o.checked) && allCb) allCb.checked = true;
+      }
+      dropdown.querySelectorAll('.project-filter-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.querySelector('input').checked);
+      });
+      updateProjectFilterBtn();
+      processData(cachedTasks, cachedProjects);
+      saveSession();
+    });
+    document.getElementById('bar-chart-select').addEventListener('change', () => { updateBarChart(); saveSession(); });
+    document.getElementById('bar-chart-breakdown').addEventListener('change', () => { updateBarChart(); saveSession(); });
+    document.getElementById('breakdown-chart-select').addEventListener('change', () => { updateProjectBreakdown(); saveSession(); });
+    const PIE_CATEGORIES = [
+      { id: 'cat-time',            value: 'time',            labelKey: 'pie.time'     },
+      { id: 'cat-completed',       value: 'completed',        labelKey: 'pie.completed' },
+      { id: 'cat-overdue',         value: 'overdue',          labelKey: 'pie.overdue'  },
+      { id: 'cat-late',            value: 'late',             labelKey: 'pie.late'     },
+      { id: 'cat-billable-global', value: 'billable-global',  labelKey: 'pie.billableGlobal' },
+      { id: 'cat-billable-daily',  value: 'billable-daily',   labelKey: 'pie.billableDaily' },
+    ];
+    const syncPieCategories = () => {
+      const select = document.getElementById('breakdown-chart-select');
+      const current = select.value;
+      select.innerHTML = '';
+      PIE_CATEGORIES.forEach(cat => {
+        if (document.getElementById(cat.id).checked) {
+          const opt = document.createElement('option');
+          opt.value = cat.value;
+          opt.textContent = t(cat.labelKey);
+          if (cat.value === current) opt.selected = true;
+          select.appendChild(opt);
+        }
+      });
+      if (!select.value && select.options.length > 0) select.options[0].selected = true;
+      updateProjectBreakdown();
+    };
+    document.getElementById('setting-bar-grouping').addEventListener('change', () => { updateBarChart(); saveSettings(); });
+    document.getElementById('setting-bar-aggregation').addEventListener('change', () => { updateBarChart(); saveSettings(); });
+    document.getElementById('setting-bar-date-fmt').addEventListener('change', () => { updateBarChart(); saveSettings(); });
+    document.getElementById('setting-table-date-fmt').addEventListener('change', () => {
+      if (!latestMetrics) return;
+      renderTable(currentDetailEntries || sortEntries(latestMetrics.tableEntries, currentSort.key, currentSort.dir));
+      saveSettings();
+    });
+    document.getElementById('setting-show-pct').addEventListener('change', () => { updateProjectBreakdown(); saveSettings(); });
+    document.getElementById('setting-show-total').addEventListener('change', () => { updateProjectBreakdown(); saveSettings(); });
+    PIE_CATEGORIES.forEach(cat => {
+      document.getElementById(cat.id).addEventListener('change', () => { syncPieCategories(); saveSettings(); });
+    });
+    document.getElementById('setting-language').addEventListener('change', (e) => {
+      currentLang = e.target.value;
+      applyTranslations();
+      saveSettings();
+    });
+    document.getElementById('billable-list-hours').addEventListener('input', () => {
+      renderBillableTable(latestMetrics);
+      saveSettings();
+    });
+    // ms per billable day, exact: when "days" is the anchor, derive from the exact
+    // total instead of the rounded hpd shown in the input (avoids 19.99/20.01 drift)
+    const getEffectiveMsPerDay = () => {
+      const days = parseFloat(document.getElementById('billable-days').value);
+      if (lastEditedBillable === 'days' && days > 0 && latestMetrics && latestMetrics.totalTimeSpent > 0) {
+        return latestMetrics.totalTimeSpent / days;
+      }
+      const hpd = parseFloat(document.getElementById('billable-hpd').value) || 8;
+      return hpd * 3600000;
+    };
+    const recomputeBillableGlobal = () => {
+      if (!latestMetrics) return;
+      const msPerDay = getEffectiveMsPerDay();
+
+      latestMetrics.weeklyData.labels.forEach((dateStr, index) => {
+        const totalMs = latestMetrics.weeklyData.data[index];
+        if (totalMs > 0) {
+          const globalDaysLogged = totalMs / msPerDay;
+          latestMetrics.billableGlobalPerDay.data[index] = globalDaysLogged;
+          
+          const breakdown = latestMetrics.weeklyData.breakdown[index];
+          for (const [pName, pData] of Object.entries(breakdown)) {
+            const pct = pData.val / totalMs;
+            latestMetrics.billableGlobalPerDay.breakdown[index][pName] = { val: pct * globalDaysLogged, color: pData.color };
+          }
+        }
+      });
+    };
+
+    // keep the anchor input fixed, derive the other from the current total,
+    // then recompute the global billable data so pie/bar/table stay consistent
+    const syncBillableAnchor = () => {
+      if (!latestMetrics) return;
+      const totalHours = latestMetrics.totalTimeSpent / 3600000;
+      const hpdInput = document.getElementById('billable-hpd');
+      const daysInput = document.getElementById('billable-days');
+      if (!hpdInput.value && !daysInput.value) hpdInput.value = '8';
+      const days = parseFloat(daysInput.value);
+      if (lastEditedBillable === 'days' && days > 0) {
+        if (totalHours > 0) hpdInput.value = (totalHours / days).toFixed(2);
+      } else {
+        const hpd = parseFloat(hpdInput.value) || 8;
+        daysInput.value = totalHours > 0 ? (totalHours / hpd).toFixed(2) : '';
+      }
+      recomputeBillableGlobal();
+    };
+
+    document.getElementById('billable-days').addEventListener('input', () => {
+      lastEditedBillable = 'days';
+      const totalHours = latestMetrics ? latestMetrics.totalTimeSpent / 3600000 : 0;
+      const days = parseFloat(document.getElementById('billable-days').value);
+      if (days > 0 && totalHours > 0) {
+        document.getElementById('billable-hpd').value = (totalHours / days).toFixed(2);
+      }
+      recomputeBillableGlobal();
+      updateProjectBreakdown();
+      updateBarChart();
+      renderBillableTable(latestMetrics);
+      saveSettings();
+    });
+    document.getElementById('billable-hpd').addEventListener('input', () => {
+      lastEditedBillable = 'hpd';
+      const totalHours = latestMetrics ? latestMetrics.totalTimeSpent / 3600000 : 0;
+      const hpd = parseFloat(document.getElementById('billable-hpd').value);
+      if (hpd > 0 && totalHours > 0) {
+        document.getElementById('billable-days').value = (totalHours / hpd).toFixed(2);
+      }
+      recomputeBillableGlobal();
+      updateProjectBreakdown();
+      updateBarChart();
+      renderBillableTable(latestMetrics);
+      saveSettings();
+    });
 
     // --- RENDER LOGIC ---
     const updateDashboardUI = (metrics) => {
       latestMetrics = metrics;
+      // sync days/hpd from the anchor input and recompute billable data
+      // BEFORE any chart/table renders, so they all use the same msPerDay
+      syncBillableAnchor();
 
-      // render table with current sort order
+      // render table with current sort order (fresh data resets the displayed order)
       const sortedEntries = sortEntries(metrics.tableEntries, currentSort.key, currentSort.dir);
+      currentDetailEntries = sortedEntries;
 
       document.getElementById('stat-time').innerText = formatTime(metrics.totalTimeSpent);
+      
+      const activeDaysCount = metrics.weeklyData.data.filter(ms => ms > 3600000).length;
+      document.getElementById('stat-active-days').innerText = activeDaysCount > 0 ? t('dynamic.activeDays', activeDaysCount) : '';
+
       document.getElementById('stat-tasks').innerText = String(metrics.totalCompleted);
-      document.getElementById('stat-tasks-total').innerText = `/ ${metrics.totalTasks} total`;
+      document.getElementById('stat-tasks-total').innerText = t('dynamic.total', metrics.totalTasks);
       
       // Progress: completion rate of active tasks in the date range
       // totalCompleted = unique tasks completed
@@ -565,43 +1705,90 @@
         overdueEl.classList.remove('text-red');
         if (metrics.unplannedCount > 0) {
           overdueNote.classList.remove('hidden');
-          overdueNote.innerText = `${metrics.unplannedCount} task(s) have no due date so overdue is unavailable`;
+          overdueNote.innerText = t('dynamic.unplanned', metrics.unplannedCount);
         } else {
           overdueNote.classList.add('hidden');
         }
       }
 
       updateBarChart();
-      updatePieChart();
+      updateProjectBreakdown();
       renderTable(sortedEntries);
+      renderBillableTable(metrics);
       updateSortIndicators();
     };
 
     const updateBarChart = () => {
+      syncAggRow();
       if (!latestMetrics) return;
+      updateBarChartTitle();
       const type = document.getElementById('bar-chart-select').value;
+      const showBreakdown = document.getElementById('bar-chart-breakdown').checked;
+      const processMetrics = (m) => showBreakdown ? m : { labels: m.labels, data: m.data };
+
+      const formatBillable = (v) => {
+        if (Number.isInteger(v)) return `${v} ${t('billable.dayUnit')}`;
+        const str = v.toFixed(2);
+        return `${str.endsWith('0') ? v.toFixed(1) : str} ${t('billable.dayUnit')}`;
+      };
+
       if (type === 'time') {
-        renderGenericBarChart(latestMetrics.weeklyData, 'bar-chart-container', 'var(--c-primary, #03a9f4)', (v) => `${(v / 3600000).toFixed(1)}h`);
+        renderGenericBarChart(processMetrics(latestMetrics.weeklyData), 'bar-chart-container', 'var(--c-primary, #03a9f4)', formatTime);
       } else if (type === 'completed') {
-        renderGenericBarChart(latestMetrics.completedPerDay, 'bar-chart-container', '#4ade80', (v) => `${Math.round(v)} tasks`);
+        renderGenericBarChart(processMetrics(latestMetrics.completedPerDay), 'bar-chart-container', '#4ade80', (v) => t('dynamic.tasks', Number.isInteger(v) ? v : v.toFixed(1)));
       } else if (type === 'overdue') {
-        renderGenericBarChart(latestMetrics.overduePerDay, 'bar-chart-container', '#f87171', (v) => `${Math.round(v)} tasks`);
+        renderGenericBarChart(processMetrics(latestMetrics.overduePerDay), 'bar-chart-container', '#f87171', (v) => t('dynamic.tasks', Number.isInteger(v) ? v : v.toFixed(1)));
       } else if (type === 'late') {
-        renderGenericBarChart(latestMetrics.latePerDay, 'bar-chart-container', '#fbbf24', (v) => `${Math.round(v)} tasks`);
+        renderGenericBarChart(processMetrics(latestMetrics.latePerDay), 'bar-chart-container', '#fbbf24', (v) => t('dynamic.tasks', Number.isInteger(v) ? v : v.toFixed(1)));
+      } else if (type === 'billable-daily') {
+        renderGenericBarChart(processMetrics(latestMetrics.billablePerDay), 'bar-chart-container', '#a855f7', formatBillable);
+      } else if (type === 'billable-global') {
+        renderGenericBarChart(processMetrics(latestMetrics.billableGlobalPerDay), 'bar-chart-container', '#a855f7', formatBillable);
       }
     };
 
-    const updatePieChart = () => {
+    const updateProjectBreakdown = () => {
       if (!latestMetrics) return;
-      const type = document.getElementById('pie-chart-select').value;
-      if (type === 'time') {
-        renderNativePieChart(latestMetrics.projectData, (v) => `${(v / 3600000).toFixed(1)}h`);
-      } else if (type === 'completed') {
-        renderNativePieChart(latestMetrics.projectCompletedData, (v) => `${Math.round(v)} tasks`);
-      } else if (type === 'overdue') {
-        renderNativePieChart(latestMetrics.projectOverdueData, (v) => `${Math.round(v)} tasks`);
-      } else if (type === 'late') {
-        renderNativePieChart(latestMetrics.projectLateData, (v) => `${Math.round(v)} tasks`);
+      const type = document.getElementById('breakdown-chart-select').value;
+      const billablePanel = document.getElementById('billable-panel');
+
+      if (type === 'billable-global' || type === 'billable-daily') {
+        // the days/hpd inputs only drive the global mode; daily mode counts
+        // each active day as 1 regardless, so the panel is noise there
+        if (type === 'billable-global') {
+          billablePanel.classList.remove('hidden');
+          // inputs are kept in sync by syncBillableAnchor / the input listeners
+          const currentHpd = getEffectiveMsPerDay() / 3600000;
+          document.getElementById('billable-total-display').textContent =
+            `${formatTime(latestMetrics.totalTimeSpent)} ${t('billable.total')}`;
+          document.getElementById('billable-avg-display').textContent =
+            `${formatTime(Math.round(currentHpd * 3600000))} ${t('billable.dayAvg')}`;
+        } else {
+          billablePanel.classList.add('hidden');
+        }
+
+        // Sum billable days per project from daily data
+        const projectBillableData = {};
+        const sourceData = type === 'billable-global' ? latestMetrics.billableGlobalPerDay : latestMetrics.billablePerDay;
+        sourceData.breakdown.forEach(dailyBreakdown => {
+          for (const [pName, pData] of Object.entries(dailyBreakdown)) {
+            projectBillableData[pName] = (projectBillableData[pName] || 0) + pData.val;
+          }
+        });
+        
+        renderNativePieChart(projectBillableData,
+          (v) => { const d = v.toFixed(1); return `${d.endsWith('.0') ? Math.round(v) : d}${t('billable.dayUnit')}`; });
+      } else {
+        billablePanel.classList.add('hidden');
+        if (type === 'time') {
+          renderNativePieChart(latestMetrics.projectData, formatTime);
+        } else if (type === 'completed') {
+          renderNativePieChart(latestMetrics.projectCompletedData, (v) => t('dynamic.tasks', v));
+        } else if (type === 'overdue') {
+          renderNativePieChart(latestMetrics.projectOverdueData, (v) => t('dynamic.tasks', v));
+        } else if (type === 'late') {
+          renderNativePieChart(latestMetrics.projectLateData, (v) => t('dynamic.tasks', v));
+        }
       }
     };
 
@@ -609,38 +1796,177 @@
       const container = document.getElementById(containerId);
       container.innerHTML = '';
       if (chartData.data.length === 0) return;
-      
-      const maxVal = Math.max(...chartData.data, 1); 
-      // adjust bars for preset: monthly/yearly should cap at 12
-      let maxBars = 30;
-      const preset = document.getElementById('date-preset').value;
-      if (preset === 'year' || preset === 'month') {
-        maxBars = 12;
-      }
-      let step = Math.ceil(chartData.data.length / maxBars);
-      for (let i = 0; i < chartData.data.length; i += step) {
-        let chunkSum = 0;
-        let chunkCount = 0;
-        for (let j = 0; j < step && i + j < chartData.data.length; j++) {
-          chunkSum += chartData.data[i+j];
-          chunkCount++;
-        }
-        
-        const val = step === 1 ? chunkSum : chunkSum / chunkCount; 
-        const label = chartData.labels[i].substring(5);
-        const heightPct = (val / maxVal) * 100;
-        const displayVal = formatFn(val);
 
+      const grouping = getBarGrouping();
+      const aggregation = getBarAggregation();
+      let bars; // [{ label, title, val, breakdown }]
+
+      const applyAgg = (sum, count, workdays) =>
+        aggregation === 'avg-per-day'     ? sum / Math.max(count, 1)
+        : aggregation === 'avg-per-workday' ? sum / Math.max(workdays, 1)
+        : sum;
+
+      const aggregateBreakdown = (breakdownSum, count, workdays) => {
+        const result = {};
+        for (const [pName, data] of Object.entries(breakdownSum)) {
+          result[pName] = { ...data, val: applyAgg(data.val, count, workdays) };
+        }
+        return result;
+      };
+
+      if (grouping === 'weekly') {
+        const weekMap = new Map(); // Monday YYYY-MM-DD -> { sum, count, workdays, breakdownSum }
+        chartData.labels.forEach((dateStr, i) => {
+          const d = new Date(`${dateStr}T00:00:00`);
+          const dow = d.getDay();
+          const toMonday = dow === 0 ? -6 : 1 - dow;
+          const monday = new Date(d);
+          monday.setDate(d.getDate() + toMonday);
+          const mondayStr = toLocalDateStr(monday);
+          const e = weekMap.get(mondayStr) || { sum: 0, count: 0, workdays: 0, breakdownSum: {} };
+          e.sum += chartData.data[i];
+          e.count++;
+          if (dow >= 1 && dow <= 5) e.workdays++;
+          if (chartData.breakdown && chartData.breakdown[i]) {
+            for (const [pName, data] of Object.entries(chartData.breakdown[i])) {
+              if (!e.breakdownSum[pName]) e.breakdownSum[pName] = { val: 0, color: data.color };
+              e.breakdownSum[pName].val += data.val;
+            }
+          }
+          weekMap.set(mondayStr, e);
+        });
+        bars = [...weekMap.entries()].map(([mondayStr, acc]) => ({
+          label: formatBarLabel(mondayStr),
+          title: t('dynamic.weekOf', mondayStr),
+          val: applyAgg(acc.sum, acc.count, acc.workdays),
+          breakdown: aggregateBreakdown(acc.breakdownSum, acc.count, acc.workdays)
+        }));
+      } else if (grouping === 'monthly') {
+        const monthMap = new Map(); // 'YYYY-MM' -> { sum, count, workdays, breakdownSum }
+        chartData.labels.forEach((dateStr, i) => {
+          const ym = dateStr.substring(0, 7);
+          const dow = new Date(`${dateStr}T00:00:00`).getDay();
+          const e = monthMap.get(ym) || { sum: 0, count: 0, workdays: 0, breakdownSum: {} };
+          e.sum += chartData.data[i];
+          e.count++;
+          if (dow >= 1 && dow <= 5) e.workdays++;
+          if (chartData.breakdown && chartData.breakdown[i]) {
+            for (const [pName, data] of Object.entries(chartData.breakdown[i])) {
+              if (!e.breakdownSum[pName]) e.breakdownSum[pName] = { val: 0, color: data.color };
+              e.breakdownSum[pName].val += data.val;
+            }
+          }
+          monthMap.set(ym, e);
+        });
+        bars = [...monthMap.entries()].map(([ym, acc]) => ({
+          label: formatMonthLabel(ym),
+          title: ym,
+          val: applyAgg(acc.sum, acc.count, acc.workdays),
+          breakdown: aggregateBreakdown(acc.breakdownSum, acc.count, acc.workdays)
+        }));
+      } else {
+        // daily - one bar per day
+        bars = chartData.labels.map((dateStr, i) => ({
+          label: formatBarLabel(dateStr),
+          title: dateStr,
+          val: chartData.data[i],
+          breakdown: chartData.breakdown ? chartData.breakdown[i] : {}
+        }));
+      }
+
+      let rawMax = bars.length > 0 ? Math.max(...bars.map(b => b.val)) : 1;
+      if (rawMax <= 0) rawMax = 1;
+      
+      const magnitude = Math.pow(10, Math.floor(Math.log10(rawMax)));
+      const normalized = rawMax / magnitude;
+      let niceNorm;
+      if (normalized <= 1) niceNorm = 1;
+      else if (normalized <= 1.2) niceNorm = 1.2;
+      else if (normalized <= 1.6) niceNorm = 1.6;
+      else if (normalized <= 2) niceNorm = 2;
+      else if (normalized <= 4) niceNorm = 4;
+      else if (normalized <= 8) niceNorm = 8;
+      else niceNorm = 10;
+      
+      const maxVal = niceNorm * magnitude;
+      const yAxisEl = document.getElementById('bar-y-axis');
+      if (yAxisEl) {
+        yAxisEl.innerHTML = '';
+        const ticks = [maxVal, maxVal * 0.75, maxVal * 0.5, maxVal * 0.25, 0];
+        ticks.forEach(tickVal => {
+          const div = document.createElement('div');
+          div.style.lineHeight = '1';
+          div.style.display = 'flex';
+          div.style.alignItems = 'center';
+          div.style.height = '1px'; // Center the text on the flex distribution line
+          div.textContent = formatFn(tickVal);
+          yAxisEl.appendChild(div);
+        });
+      }
+      // At most 8 visible tick labels - enough to orient without overlap at any bar width
+      const n = bars.length;
+      const labelStep = Math.max(1, Math.ceil(n / 8));
+
+      const canvas = document.createElement('div');
+      canvas.className = 'bar-chart-canvas';
+      // Force canvas (and therefore x-axis) to exactly match bars' natural width
+      // so labels at left:X% are always aligned even when the chart is scrolled
+      canvas.style.minWidth = `${n * 8 + Math.max(0, n - 1) * 2}px`;
+
+      const barsBody = document.createElement('div');
+      barsBody.className = 'bars-body';
+
+      const xAxis = document.createElement('div');
+      xAxis.className = 'x-axis';
+
+      bars.forEach(({ label, title, val, breakdown }, i) => {
+        const heightPct = (val / maxVal) * 100;
         const col = document.createElement('div');
         col.className = 'bar-col';
-        col.innerHTML = `
-          <div class="bar" style="height: ${heightPct}%; background: ${color};" data-val="${displayVal}"></div>
-          <div class="bar-label" title="${chartData.labels[i]}">${label}</div>
-        `;
-        container.appendChild(col);
-      }
-      
-      // Setup tooltip listeners for bars
+        
+        let innerHTML = '';
+        let tooltipData = [];
+        
+        if (breakdown && Object.keys(breakdown).length > 0 && val > 0) {
+          const sortedBreakdown = Object.entries(breakdown).sort((a,b) => b[1].val - a[1].val);
+          innerHTML = `<div class="bar-area"><div class="bar" style="height:${heightPct}%; display: flex; flex-direction: column-reverse; background: transparent; overflow: hidden; border-radius: 3px 3px 0 0;" data-val="${formatFn(val)}" data-label="${label}">`;
+          for (const [pName, data] of sortedBreakdown) {
+            const hPct = (data.val / val) * 100;
+            if (hPct > 0) {
+              innerHTML += `<div style="height: ${hPct}%; width: 100%; background: ${data.color};"></div>`;
+              tooltipData.push(`${pName}: ${formatFn(data.val)}`);
+            }
+          }
+          innerHTML += `</div></div>`;
+        } else {
+          innerHTML = `<div class="bar-area"><div class="bar" style="height:${heightPct}%;background:${color};" data-val="${formatFn(val)}" data-label="${label}"></div></div>`;
+        }
+
+        col.innerHTML = innerHTML;
+        const barEl = col.querySelector('.bar');
+        if (barEl && tooltipData.length > 0) {
+          barEl.setAttribute('data-tooltip', tooltipData.join('<br>'));
+        }
+        
+        barsBody.appendChild(col);
+
+        if (i % labelStep === 0) {
+          const lbl = document.createElement('div');
+          lbl.className = 'x-label';
+          lbl.textContent = label;
+          lbl.title = title;
+          lbl.style.left = `${(i + 0.5) / n * 100}%`;
+          xAxis.appendChild(lbl);
+        }
+      });
+
+      canvas.appendChild(barsBody);
+      canvas.appendChild(xAxis);
+      container.appendChild(canvas);
+
+      // Scroll to the most recent (rightmost) bars by default
+      container.scrollLeft = container.scrollWidth;
+
       setupBarTooltip();
     };
 
@@ -649,15 +1975,21 @@
       const bars = document.querySelectorAll('.bar-chart .bar');
       
       bars.forEach(bar => {
-        bar.addEventListener('mouseenter', (e) => {
-          tooltip.textContent = bar.getAttribute('data-val');
+        bar.addEventListener('mouseenter', () => {
+          const label = bar.getAttribute('data-label');
+          const val = bar.getAttribute('data-val');
+          const tData = bar.getAttribute('data-tooltip');
+          let html = label ? `<strong>${label}: ${val}</strong>` : `<strong>${val}</strong>`;
+          if (tData) {
+            html += `<br><div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--divider-color, #444); text-align: left; font-weight: normal; color: #ccc;">${tData}</div>`;
+          }
+          tooltip.innerHTML = html;
           tooltip.classList.add('visible');
         });
         
         bar.addEventListener('mousemove', (e) => {
-          // Position tooltip at cursor with small offset
-          tooltip.style.left = (e.clientX + 8) + 'px';
-          tooltip.style.top = (e.clientY - 12) + 'px';
+          tooltip.style.left = `${e.clientX + 8}px`;
+          tooltip.style.top = `${e.clientY - 12}px`;
         });
         
         bar.addEventListener('mouseleave', () => {
@@ -667,83 +1999,502 @@
     };
 
     const renderNativePieChart = (projectData, formatFn) => {
-      const pieEl = document.getElementById('pie-chart-element');
-      const legendEl = document.getElementById('pie-legend-container');
-      legendEl.innerHTML = '';
+      const breakdownBar = document.getElementById('breakdown-bar');
+      const breakdownList = document.getElementById('breakdown-list');
+      const showPct = document.getElementById('setting-show-pct').checked;
+      const showTotal = document.getElementById('setting-show-total').checked;
       
+      breakdownBar.innerHTML = '';
+      breakdownList.innerHTML = '';
+
       const entries = Object.entries(projectData).sort((a,b) => b[1] - a[1]);
       const totalVal = entries.reduce((acc, curr) => acc + curr[1], 0);
 
       if (totalVal === 0 || entries.length === 0) {
-        pieEl.style.background = 'var(--divider-color, #333)';
-        legendEl.innerHTML = '<div class="text-muted text-sm">No data for selected period</div>';
+        breakdownBar.classList.add('is-empty');
+        breakdownList.innerHTML = `<div class="text-muted text-sm">${t('pie.noData')}</div>`;
         return;
       }
+      breakdownBar.classList.remove('is-empty');
 
-      let gradientStops = [];
-      let currentPercent = 0;
+      const fmtPct = (p) => p.toFixed(1).endsWith('.0') ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
 
-      entries.forEach(([name, val], index) => {
-        const color = PIE_COLORS[index % PIE_COLORS.length];
+      const parts = entries.map(([name, val], index) => {
+        const color = (latestMetrics && latestMetrics.projectColorMap && latestMetrics.projectColorMap[name])
+          ? latestMetrics.projectColorMap[name]
+          : PIE_COLORS[index % PIE_COLORS.length];
         const percent = (val / totalVal) * 100;
-        
-        gradientStops.push(`${color} ${currentPercent}% ${currentPercent + percent}%`);
-        currentPercent += percent;
-
-        legendEl.innerHTML += `
-          <div class="legend-item">
-            <div class="legend-label">
-              <span class="legend-dot" style="background: ${color}"></span>
-              <span title="${name}">${name.length > 20 ? name.substring(0,20)+'...' : name}</span>
-            </div>
-            <div class="legend-val">${formatFn(val)}</div>
-          </div>
-        `;
+        const displayName = name === 'Uncategorized' ? t('dynamic.uncategorized') : name;
+        return { name, displayName, color, percent, val, index };
       });
-      pieEl.style.background = `conic-gradient(${gradientStops.join(', ')})`;
+
+      // the stacked ribbon already carries the proportions, so the rows stay
+      // a plain aligned list instead of repeating a bar each
+      breakdownBar.innerHTML = parts.map(p => `
+        <div class="breakdown-seg" data-index="${p.index}" style="width: ${p.percent}%; background: ${p.color};"
+             title="${escAttr(p.displayName)}: ${escAttr(formatFn(p.val))} (${fmtPct(p.percent)})"></div>
+      `).join('');
+
+      breakdownList.innerHTML = parts.map(p => `
+        <div class="breakdown-row" data-index="${p.index}">
+          <span class="breakdown-name">
+            <span class="breakdown-dot" style="background: ${p.color};"></span>
+            <span title="${escAttr(p.displayName)}">${escAttr(p.displayName)}</span>
+          </span>
+          <span class="breakdown-val">${formatFn(p.val)}</span>
+          ${showPct ? `<span class="breakdown-pct">${fmtPct(p.percent)}</span>` : ''}
+        </div>
+      `).join('') + (showTotal ? `
+        <div class="breakdown-total">
+          <span class="breakdown-name">
+            <span class="breakdown-dot" style="visibility: hidden;"></span>
+            <span>${t('pie.total')}</span>
+          </span>
+          <span class="breakdown-val">${formatFn(totalVal)}</span>
+          ${showPct ? `<span class="breakdown-pct">100%</span>` : ''}
+        </div>
+      ` : '');
+
+      // hovering a row highlights its slice of the ribbon, and the reverse
+      const setHover = (index) => {
+        breakdownBar.classList.toggle('has-hover', index !== null);
+        breakdownBar.querySelectorAll('.breakdown-seg').forEach(seg => {
+          seg.classList.toggle('is-hover', seg.dataset.index === String(index));
+        });
+      };
+      [...breakdownList.querySelectorAll('.breakdown-row'), ...breakdownBar.querySelectorAll('.breakdown-seg')]
+        .forEach(el => {
+          el.addEventListener('mouseenter', () => setHover(el.dataset.index));
+          el.addEventListener('mouseleave', () => setHover(null));
+        });
     };
 
     const renderTable = (entries) => {
       const tbody = document.getElementById('details-table-body');
       
       if (entries.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">No tracked time found for this date range.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = entries.map(entry => `
-        <tr>
-          <td style="white-space: nowrap;">${formatDateShort(entry.date)}</td>
-          <td style="color: var(--text-color-muted, #9e9e9e); font-size: 0.875rem;">${entry.projectName}</td>
+      let prevDate = null;
+      tbody.innerHTML = entries.map(entry => {
+        const dayBreak = currentSort.key === 'date' && prevDate !== null && entry.date !== prevDate;
+        prevDate = entry.date;
+        return `
+        <tr${dayBreak ? ' class="day-break"' : ''}>
+          <td style="white-space: nowrap;">${formatTableDate(entry.date)}</td>
+          <td style="font-size: 0.875rem;">
+            <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: ${entry.projectColor}; flex-shrink: 0;"></span>
+              <span style="color: var(--text-color-muted, #9e9e9e);">${entry.projectName}</span>
+            </span>
+          </td>
           <td style="font-weight: 500;">${entry.taskTitle}</td>
           <td class="time-cell">${formatTime(entry.timeSpent)}</td>
           <td>
             ${
-              entry.late 
-                ? `<span class="badge badge-yellow">Late</span>`
+              entry.late
+                ? `<span class="badge badge-yellow">${t('badge.late')}</span>`
                 : entry.overdue
-                ? `<span class="badge badge-red">Overdue</span>`
-                : entry.isDone 
-                ? `<span class="badge badge-done">Done</span>`
-                : `<span class="badge badge-progress">In Progress</span>`
+                ? `<span class="badge badge-red">${t('badge.overdue')}</span>`
+                : entry.isDone
+                ? `<span class="badge badge-done">${t('badge.done')}</span>`
+                : `<span class="badge badge-progress">${t('badge.inProgress')}</span>`
             }
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     };
 
+    const billableSort = { key: 'date', dir: 'desc' };
+    let billableLastOrder = null; // row keys in the order last displayed, per mode
+    // project name -> group id; projects sharing an id are summed as one line
+    const billableGroupOf = {};
+    // group ids in use, paired with the letter shown in the UI
+    const groupLetters = () => [...new Set(Object.values(billableGroupOf))]
+      .sort((a, b) => a - b)
+      .map((gid, i) => [gid, String.fromCharCode(65 + i)]);
+    const nextGroupId = () => {
+      const ids = Object.values(billableGroupOf);
+      return ids.length ? Math.max(...ids) + 1 : 1;
+    };
+
+    // the grouping bar sits above the table: one chip per project, each with a
+    // small group picker (none / an existing group / a new one)
+    const renderBillableGroups = (presentProjects, colorOf) => {
+      const bar = document.getElementById('billable-groups');
+      if (!presentProjects.length) { bar.innerHTML = ''; return; }
+      const letters = groupLetters();
+      const hasGroups = letters.length > 0;
+      bar.innerHTML =
+        `<span class="billable-groups-label" data-i18n="billable.groups">${t('billable.groups')}</span>` +
+        presentProjects.map(p => {
+          const g = billableGroupOf[p];
+          return `
+          <label class="group-chip${g != null ? ' is-grouped' : ''}">
+            <span class="breakdown-dot" style="background: ${colorOf(p)};"></span>
+            <span class="group-chip-name" title="${escAttr(p)}">${escAttr(p)}</span>
+            <select class="group-select" data-project="${escAttr(p)}">
+              <option value=""${g == null ? ' selected' : ''}>—</option>
+              ${letters.map(([gid, letter]) =>
+                `<option value="${gid}"${gid === g ? ' selected' : ''}>${letter}</option>`).join('')}
+              <option value="new">+</option>
+            </select>
+          </label>`;
+        }).join('') +
+        (hasGroups ? `<button type="button" class="group-clear">${t('billable.ungroupAll')}</button>` : '');
+
+      bar.querySelectorAll('.group-select').forEach(sel => {
+        sel.addEventListener('change', () => {
+          const p = sel.getAttribute('data-project');
+          const v = sel.value;
+          if (v === '') delete billableGroupOf[p];
+          else if (v === 'new') billableGroupOf[p] = nextGroupId();
+          else billableGroupOf[p] = Number(v);
+          renderBillableTable(latestMetrics);
+          saveSession();
+        });
+      });
+      const clearBtn = bar.querySelector('.group-clear');
+      if (clearBtn) clearBtn.addEventListener('click', () => {
+        Object.keys(billableGroupOf).forEach(k => delete billableGroupOf[k]);
+        renderBillableTable(latestMetrics);
+        saveSession();
+      });
+    };
+    const escAttr = (s) => String(s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const renderBillableTable = (metrics) => {
+      if (!metrics) return;
+      const tbody = document.getElementById('billable-table-body');
+      const thead = document.getElementById('billable-table-head');
+      const type = document.getElementById('billable-table-select').value;
+      const listHours = parseFloat(document.getElementById('billable-list-hours').value) || 8;
+      let rows = [];
+
+      if (type === 'daily') {
+        metrics.billablePerDay.labels.forEach((dateStr, i) => {
+          const totalMs = metrics.weeklyData.data[i];
+          if (totalMs > 0) {
+            const dailyBreakdown = metrics.weeklyData.breakdown[i];
+            const billableBreakdown = metrics.billablePerDay.breakdown[i];
+            for (const [pName, pData] of Object.entries(dailyBreakdown)) {
+              const ms = pData.val;
+              rows.push({
+                date: dateStr, projectName: pName, projectColor: pData.color,
+                timeSpent: ms, pct: (ms / totalMs) * 100,
+                billableDays: billableBreakdown[pName] ? billableBreakdown[pName].val : 0
+              });
+            }
+          }
+        });
+      } else {
+        const totalMs = metrics.totalTimeSpent;
+        const msPerDay = getEffectiveMsPerDay();
+        for (const [pName, ms] of Object.entries(metrics.projectData)) {
+          rows.push({
+            projectName: pName, projectColor: metrics.projectColorMap[pName] || '#fff',
+            timeSpent: ms, pct: (ms / totalMs) * 100, billableDays: ms / msPerDay
+          });
+        }
+      }
+
+      const colorOf = n => (metrics.projectColorMap && metrics.projectColorMap[n]) || '#9e9e9e';
+      const presentProjects = [...new Set(rows.map(r => r.projectName))];
+      // forget assignments for projects that dropped out of the current range
+      Object.keys(billableGroupOf).forEach(p => {
+        if (!presentProjects.includes(p)) delete billableGroupOf[p];
+      });
+      renderBillableGroups(presentProjects, colorOf);
+
+      // each group is merged everywhere in the table: one row per day instead
+      // of one per project, so the hours (and the rounding that follows) are
+      // computed on the combined series. A lone member isn't worth merging.
+      const membersByGroup = {};
+      presentProjects.forEach(p => {
+        const g = billableGroupOf[p];
+        if (g != null) (membersByGroup[g] = membersByGroup[g] || []).push(p);
+      });
+      const groupInfo = {};
+      const labelToGroup = {};
+      groupLetters().forEach(([gid, letter]) => {
+        const members = membersByGroup[gid];
+        if (!members || members.length < 2) return;
+        const label = members.join(' + ');
+        groupInfo[gid] = { label, letter, colors: members.map(colorOf) };
+        labelToGroup[label] = gid;
+      });
+      if (Object.keys(groupInfo).length) {
+        const merged = [];
+        const byKey = new Map();
+        rows.forEach(r => {
+          const gid = billableGroupOf[r.projectName];
+          if (gid == null || !groupInfo[gid]) { merged.push(r); return; }
+          const key = `${type === 'daily' ? r.date : ''}|${gid}`;
+          let g = byKey.get(key);
+          if (!g) {
+            g = { date: r.date, projectName: groupInfo[gid].label, projectColor: groupInfo[gid].colors[0],
+                  groupId: gid, billableDays: 0, timeSpent: 0, pct: 0 };
+            byKey.set(key, g);
+            merged.push(g);
+          }
+          g.billableDays += r.billableDays;
+          g.timeSpent += r.timeSpent;
+          g.pct += r.pct;
+        });
+        rows = merged;
+      }
+
+      // billed hours derived from billable days and the hours-per-day input
+      rows.forEach(r => { r.hours = r.billableDays * listHours; });
+
+      // "hours to declare" honours two constraints at once:
+      //  - every day totals exactly the hours/day figure across all projects
+      //  - every project's declared total equals its exact total over the range
+      // Days are walked in order; each project carries the gap between what it
+      // has been given and what it has really worked, and settles that gap
+      // exactly on its last day. Since each day is closed on the exact total,
+      // the carries always cancel out, so both constraints hold.
+      if (type === 'daily') {
+        const byDate = new Map();
+        rows.forEach(r => {
+          if (!byDate.has(r.date)) byDate.set(r.date, []);
+          byDate.get(r.date).push(r);
+        });
+        const lastDayOf = {};
+        rows.forEach(r => { lastDayOf[r.projectName] = r.date; });
+
+        const carry = {};
+        byDate.forEach((dayRows, date) => {
+          const dayTotal = dayRows.reduce((s, r) => s + r.hours, 0);
+          const settling = dayRows.filter(r => lastDayOf[r.projectName] === date);
+          const ongoing = dayRows.filter(r => lastDayOf[r.projectName] !== date);
+
+          settling.forEach(r => {
+            r.declared = r.hours - (carry[r.projectName] || 0);
+            carry[r.projectName] = 0;
+          });
+          let left = dayTotal - settling.reduce((s, r) => s + r.declared, 0);
+
+          // biggest last: it closes the day and so absorbs any leftover fraction
+          const queue = ongoing
+            .map(r => ({ r, target: r.hours - (carry[r.projectName] || 0) }))
+            .sort((a, b) => a.target - b.target);
+          let cum = 0, given = 0;
+          queue.forEach((q, i) => {
+            cum += q.target;
+            q.r.declared = (i === queue.length - 1)
+              ? left - given
+              : Math.max(0, Math.round(cum) - given);
+            given += q.r.declared;
+            carry[q.r.projectName] = (carry[q.r.projectName] || 0) + q.r.declared - q.r.hours;
+          });
+
+          // a negative share would be nonsense: take it back from the largest
+          const negative = dayRows.filter(r => r.declared < 0);
+          negative.forEach(r => {
+            const debt = -r.declared;
+            r.declared = 0;
+            carry[r.projectName] = (carry[r.projectName] || 0) + debt;
+            const biggest = dayRows.reduce((a, b) => (b.declared > a.declared ? b : a), dayRows[0]);
+            biggest.declared -= debt;
+            carry[biggest.projectName] = (carry[biggest.projectName] || 0) - debt;
+          });
+        });
+      }
+
+      // in global mode the date column shows the aggregated date range
+      const rangeLabels = metrics.billablePerDay.labels;
+      const rangeText = rangeLabels.length
+        ? (rangeLabels.length === 1
+            ? formatTableDate(rangeLabels[0])
+            : `${formatTableDate(rangeLabels[0])} – ${formatTableDate(rangeLabels[rangeLabels.length - 1])}`)
+        : '';
+
+      // per-day date sorting only exists in daily mode
+      const effKey = (type === 'global' && billableSort.key === 'date') ? 'billableDays' : billableSort.key;
+
+      // sort relative to the order currently displayed: first restore the last
+      // displayed order, then stable-sort by the new key so ties keep their
+      // previous relative order (multi-level sorting, most recent click wins)
+      const rowKey = r => type === 'daily' ? `${r.date}|${r.projectName}` : r.projectName;
+      if (billableLastOrder && billableLastOrder.mode === type) {
+        const pos = new Map(billableLastOrder.keys.map((k, i) => [k, i]));
+        rows.sort((a, b) => (pos.get(rowKey(a)) ?? 1e9) - (pos.get(rowKey(b)) ?? 1e9));
+      }
+      const mul = billableSort.dir === 'asc' ? 1 : -1;
+      rows.sort((a, b) => {
+        const av = a[effKey], bv = b[effKey];
+        const cmp = (typeof av === 'string') ? av.localeCompare(bv) : (av - bv);
+        return cmp * mul;
+      });
+      billableLastOrder = { mode: type, keys: rows.map(rowKey) };
+
+      const billableLabelKey = type === 'daily' ? 'pie.billableDaily' : 'pie.billableGlobal';
+      thead.innerHTML = `
+        <tr>
+          ${type === 'daily'
+            ? `<th data-sort="date" data-i18n="table.date">${t('table.date')}</th>`
+            : `<th data-i18n="table.date">${t('table.date')}</th>`}
+          <th data-sort="projectName" data-i18n="table.project">${t('table.project')}</th>
+          <th class="num" data-sort="billableDays" data-i18n="${billableLabelKey}">${t(billableLabelKey)}</th>
+          <th class="num" data-sort="hours" data-i18n="table.hours">${t('table.hours')}</th>
+          <th class="num" data-sort="pct">%</th>
+          <th class="num" data-sort="timeSpent" data-i18n="table.timeSpent">${t('table.timeSpent')}</th>
+          ${type === 'daily' ? `<th class="num" data-sort="declared" data-i18n="table.toDeclare">${t('table.toDeclare')}</th>` : ''}
+        </tr>
+      `;
+      thead.querySelectorAll('th[data-sort]').forEach(th => {
+        const key = th.getAttribute('data-sort');
+        th.style.cursor = 'pointer';
+        if (key === effKey) th.classList.add(billableSort.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        th.addEventListener('click', () => {
+          if (billableSort.key === key) {
+            billableSort.dir = billableSort.dir === 'asc' ? 'desc' : 'asc';
+          } else {
+            billableSort.key = key;
+            billableSort.dir = key === 'date' ? 'desc' : 'asc';
+          }
+          renderBillableTable(latestMetrics);
+        });
+      });
+
+      const tfoot = document.getElementById('billable-table-foot');
+      tfoot.innerHTML = '';
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="${type === 'daily' ? 7 : 6}" style="text-align: center; color: var(--text-color-muted, #9e9e9e); padding: 3rem;">${t('table.noData')}</td></tr>`;
+        return;
+      }
+
+      // per-project totals (in global mode each row already is its own total)
+      const totals = {};
+      rows.forEach(r => {
+        const tot = totals[r.projectName] = totals[r.projectName] ||
+          { color: r.projectColor, billableDays: 0, hours: 0, timeSpent: 0, declared: 0 };
+        tot.billableDays += r.billableDays;
+        tot.hours += r.hours;
+        tot.timeSpent += r.timeSpent;
+        tot.declared += (r.declared || 0);
+      });
+      const totalMs = rows.reduce((s, r) => s + r.timeSpent, 0);
+
+      const dot = c => `<span style="width: 8px; height: 8px; border-radius: 50%; background: ${c}; flex-shrink: 0;"></span>`;
+      // a group shows one dot per project it merges
+      const dots = (pName, color) => labelToGroup[pName] != null
+        ? groupInfo[labelToGroup[pName]].colors.map(dot).join('')
+        : dot(color);
+      const valueCells = (v, showDeclared) => `
+            <td class="num">${v.billableDays.toFixed(2)}</td>
+            <td class="num time-cell">${formatTime(Math.round(v.hours * 3600000))}</td>
+            <td class="num">${totalMs > 0 ? ((v.timeSpent / totalMs) * 100).toFixed(1) : '0.0'}%</td>
+            <td class="num time-cell">${formatTime(v.timeSpent)}</td>
+            ${showDeclared ? `<td class="num time-cell">${formatTime(Math.round(v.declared * 3600000))}</td>` : ''}`;
+
+      const footRows = [];
+      // daily mode: one total row per project (global mode already has them)
+      if (type === 'daily') {
+        Object.entries(totals)
+          .sort((a, b) => b[1].timeSpent - a[1].timeSpent)
+          .forEach(([pName, tot], i) => {
+            const gid = labelToGroup[pName];
+            footRows.push(`
+          <tr class="${i === 0 ? 'day-break ' : ''}${gid != null ? 'selection-row' : ''}">
+            <td style="white-space: nowrap; color: var(--text-color-muted, #9e9e9e); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em;">${gid != null ? `${t('table.group')} ${groupInfo[gid].letter}` : t('table.total')}</td>
+            <td style="font-size: 0.875rem;">
+              <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                ${dots(pName, tot.color)}
+                <span>${escAttr(pName)}</span>
+              </span>
+            </td>
+            ${valueCells(tot, true)}
+          </tr>`);
+          });
+      }
+      tfoot.innerHTML = footRows.join('');
+      let prevDate = null;
+      tbody.innerHTML = rows.map(entry => {
+        const dayBreak = type === 'daily' && effKey === 'date' && prevDate !== null && entry.date !== prevDate;
+        prevDate = entry.date;
+        return `
+          <tr${dayBreak ? ' class="day-break"' : ''}>
+            ${type === 'daily'
+              ? `<td style="white-space: nowrap;">${formatTableDate(entry.date)}</td>`
+              : `<td style="white-space: nowrap; color: var(--text-color-muted, #9e9e9e);">${rangeText}</td>`}
+            <td style="font-size: 0.875rem;">
+              <span style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                ${dots(entry.projectName, entry.projectColor)}
+                <span style="color: var(--text-color-muted, #9e9e9e);">${escAttr(entry.projectName)}</span>
+              </span>
+            </td>
+            <td class="num">${entry.billableDays.toFixed(2)}</td>
+            <td class="num time-cell">${formatTime(Math.round(entry.hours * 3600000))}</td>
+            <td class="num">${entry.pct.toFixed(1)}%</td>
+            <td class="num time-cell">${formatTime(entry.timeSpent)}</td>
+            ${type === 'daily' ? `<td class="num time-cell" style="font-weight: 600;">${formatTime(Math.round(entry.declared * 3600000))}</td>` : ''}
+          </tr>
+        `;
+      }).join('');
+    };
     // helper for normalizing a task's dueDay to day boundaries (UTC)
     const getDueBounds = (task) => {
       let dueStart = null;
       if (task.dueDay) {
         // parse original YYYY-MM-DD string – Date.parse yields UTC midnight
         const parsed = Date.parse(task.dueDay);
-        if (!isNaN(parsed)) {
+        if (!Number.isNaN(parsed)) {
           dueStart = parsed; // no timezone shift
         }
       }
       const dueEnd = dueStart !== null ? dueStart + 86400000 - 1 : null;
       return { dueStart, dueEnd };
+    };
+
+    const updateProjectFilterBtn = () => {
+      const dropdown = document.getElementById('project-filter-dropdown');
+      const btn = document.getElementById('project-filter-btn');
+      if (!dropdown || !btn) return;
+      const allCb = dropdown.querySelector('input[value="all"]');
+      const others = [...dropdown.querySelectorAll('input[type=checkbox]:not([value="all"])')];
+      const checked = others.filter(cb => cb.checked);
+      if (!allCb || allCb.checked || checked.length === 0) {
+        btn.textContent = t('header.allProjects');
+      } else if (checked.length === 1) {
+        btn.textContent = checked[0].closest('label').textContent.trim();
+      } else {
+        btn.textContent = t('dynamic.projects', checked.length);
+      }
+    };
+
+    const updateProjectFilter = (projectsArr, tasksArr) => {
+      const dropdown = document.getElementById('project-filter-dropdown');
+      const allCb = dropdown.querySelector('input[value="all"]');
+      const currentAll = !allCb || allCb.checked;
+      const currentChecked = new Set(
+        [...dropdown.querySelectorAll('input[type=checkbox]:not([value="all"]):checked')].map(cb => cb.value)
+      );
+      dropdown.innerHTML = '';
+      const makeOption = (value, text, checked) => {
+        const label = document.createElement('label');
+        label.className = 'project-filter-option' + (checked ? ' selected' : '');
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = value;
+        cb.checked = checked;
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(text));
+        dropdown.appendChild(label);
+      };
+      // Use pendingProjectRestore if set (from loadSession), otherwise keep current selection
+      const restoreAll = pendingProjectRestore ? pendingProjectRestore.all : (currentAll && currentChecked.size === 0);
+      const restoreIds = pendingProjectRestore ? pendingProjectRestore.ids : currentChecked;
+      pendingProjectRestore = null;
+      makeOption('all', t('header.allProjects'), restoreAll && restoreIds.size === 0);
+      projectsArr.forEach(p => { makeOption(p.id, p.title, !restoreAll && restoreIds.has(p.id)); });
+      const hasUncategorized = tasksArr.some(task => !task.projectId || !projectsArr.find(p => p.id === task.projectId));
+      if (hasUncategorized) makeOption('uncategorized', t('dynamic.uncategorized'), !restoreAll && restoreIds.has('uncategorized'));
+      updateProjectFilterBtn();
     };
 
     // process tasks/projects into metrics and update UI
@@ -764,40 +2515,62 @@
         } else if (preset === 'year') {
           startObj.setFullYear(endObj.getFullYear() - 1);
         }
-        dateFromStr = startObj.toISOString().split('T')[0];
-        dateToStr = endObj.toISOString().split('T')[0];
+        dateFromStr = toLocalDateStr(startObj);
+        dateToStr = toLocalDateStr(endObj);
       }
       const dateRange = getDatesInRange(dateFromStr, dateToStr);
       console.log("[sp-dashboard] computed date range", dateFromStr, dateToStr, dateRange);
 
       // Build lookup maps for faster processing
       const projectMap = {};
-      projectsArr.forEach(p => projectMap[p.id] = p.title);
-      
-      let metrics = {
+      projectsArr.forEach(p => { projectMap[p.id] = p.title; });
+      const projectColorMap = {};
+      projectsArr.forEach((p, i) => {
+        projectColorMap[p.title] = (p.theme && p.theme.primary) || p.themeColor || p.color || PIE_COLORS[i % PIE_COLORS.length];
+      });
+      projectColorMap.Uncategorized = PIE_COLORS[projectsArr.length % PIE_COLORS.length];
+
+      // Apply project filter
+      const pfDropdown = document.getElementById('project-filter-dropdown');
+      const pfAllCb = pfDropdown ? pfDropdown.querySelector('input[value="all"]') : null;
+      const pfIsAll = !pfAllCb || pfAllCb.checked;
+      const pfSelected = pfIsAll ? null : new Set(
+        [...pfDropdown.querySelectorAll('input[type=checkbox]:not([value="all"]):checked')].map(cb => cb.value)
+      );
+      const filteredTasks = pfIsAll
+        ? tasksArr
+        : tasksArr.filter(task => {
+            if (pfSelected.has('uncategorized') && (!task.projectId || !projectMap[task.projectId])) return true;
+            return task.projectId && pfSelected.has(task.projectId);
+          });
+
+      const metrics = {
         totalTimeSpent: 0,
         totalCompleted: 0,
         totalTasks: 0,
         overdueTasks: 0,
         lateCompleted: 0, // completed after due date
         unplannedCount: 0, // tasks without a dueDay
-        weeklyData: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
-        completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
-        overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
-        latePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0) },
+        weeklyData: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        completedPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        overduePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        latePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        billablePerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
+        billableGlobalPerDay: { labels: dateRange, data: new Array(dateRange.length).fill(0), breakdown: Array.from({length: dateRange.length}, () => ({})) },
         projectData: {},
         projectCompletedData: {},
         projectOverdueData: {},
         projectLateData: {},
-        tableEntries: []
+        tableEntries: [],
+        projectColorMap: projectColorMap
       };
 
       const now = Date.now();
       // define end-of-range timestamp for per-day overdue calculations
-      const rangeEndTime = new Date(dateToStr + "T23:59:59").getTime();
+      const rangeEndTime = new Date(`${dateToStr}T23:59:59`).getTime();
 
       const countedOverdue = new Set();
-      tasksArr.forEach(task => {
+      filteredTasks.forEach(task => {
         const keys = Object.keys(task.timeSpentOnDay || {});
         const overlap = keys.filter(k => dateRange.includes(k));
         // compute normalized due bounds (start of day / end of day)
@@ -814,9 +2587,10 @@
                     "isDone", task.isDone, "doneOnUTC", task.doneOn ? new Date(task.doneOn).toISOString() : null,
                     "timeSpentOnDay keys", keys, "inRange", overlap);
         let taskTimeInRange = 0;
-        const pName = task.projectId && projectMap[task.projectId] 
-            ? projectMap[task.projectId] 
+        const pName = task.projectId && projectMap[task.projectId]
+            ? projectMap[task.projectId]
             : 'Uncategorized';
+        const pColor = projectColorMap[pName] || PIE_COLORS[0];
 
         // count unplanned only if dueDay is missing
         if (!dueStart && !task.isDone) {
@@ -844,19 +2618,23 @@
         }
 
         dateRange.forEach((dateStr, index) => {
-          const dayStart = new Date(dateStr + "T00:00:00").getTime();
+          const dayStart = new Date(`${dateStr}T00:00:00`).getTime();
           const dayEnd = dayStart + 86400000 - 1;
 
           // Time Spent Logging
-          const spentOnDate = task.timeSpentOnDay && task.timeSpentOnDay[dateStr];
+          const spentOnDate = task.timeSpentOnDay?.[dateStr];
           if (spentOnDate) {
             metrics.weeklyData.data[index] += spentOnDate;
+            if (!metrics.weeklyData.breakdown[index][pName]) metrics.weeklyData.breakdown[index][pName] = { val: 0, color: pColor };
+            metrics.weeklyData.breakdown[index][pName].val += spentOnDate;
+
             taskTimeInRange += spentOnDate;
 
             metrics.tableEntries.push({
               date: dateStr,
               projectName: pName,
-              taskTitle: task.title || 'Untitled Task',
+              projectColor: pColor,
+              taskTitle: task.title || t('dynamic.untitledTask'),
               timeSpent: spentOnDate,
               isDone: task.isDone,
               overdue: isOverdue,
@@ -867,9 +2645,14 @@
           // Completed Logic
           if (task.isDone && task.doneOn && task.doneOn >= dayStart && task.doneOn <= dayEnd) {
             metrics.completedPerDay.data[index]++;
+            if (!metrics.completedPerDay.breakdown[index][pName]) metrics.completedPerDay.breakdown[index][pName] = { val: 0, color: pColor };
+            metrics.completedPerDay.breakdown[index][pName].val++;
+
             metrics.projectCompletedData[pName] = (metrics.projectCompletedData[pName] || 0) + 1;
             if (isLate) {
               metrics.latePerDay.data[index]++;
+              if (!metrics.latePerDay.breakdown[index][pName]) metrics.latePerDay.breakdown[index][pName] = { val: 0, color: pColor };
+              metrics.latePerDay.breakdown[index][pName].val++;
             }
           }
 
@@ -878,6 +2661,8 @@
             const doneAfter = task.doneOn && task.doneOn > dayEnd;
             if (!task.isDone || doneAfter) {
               metrics.overduePerDay.data[index]++;
+              if (!metrics.overduePerDay.breakdown[index][pName]) metrics.overduePerDay.breakdown[index][pName] = { val: 0, color: pColor };
+              metrics.overduePerDay.breakdown[index][pName].val++;
             }
           }
         });
@@ -889,7 +2674,8 @@
             metrics.tableEntries.push({
               date: doneDate,
               projectName: pName,
-              taskTitle: task.title || 'Untitled Task',
+              projectColor: pColor,
+              taskTitle: task.title || t('dynamic.untitledTask'),
               timeSpent: 0,
               isDone: task.isDone,
               overdue: isOverdue,
@@ -897,15 +2683,16 @@
             });
           }
         }
-        
+
         // add a row for overdue or late tasks that had no time entries
         if (taskTimeInRange === 0 && (isOverdue || isLate)) {
-          const badge = isLate ? 'Late' : 'Overdue';
-          const dateStr = dueStart ? new Date(dueStart).toISOString().split('T')[0] : '';
+          const badge = isLate ? t('badge.late') : t('badge.overdue');
+          const dateStr = task.dueDay || '';
           metrics.tableEntries.push({
             date: dateStr,
             projectName: pName,
-            taskTitle: `${task.title || 'Untitled Task'} (${badge})`,
+            projectColor: pColor,
+            taskTitle: `${task.title || t('dynamic.untitledTask')} (${badge})`,
             timeSpent: 0,
             isDone: task.isDone,
             overdue: isOverdue,
@@ -932,8 +2719,29 @@
         }
       });
 
+      // Calculate billablePerDay based on time logged
+      const hpd = parseFloat(document.getElementById('billable-hpd').value) || 8;
+      const msPerDay = hpd * 3600000;
+      dateRange.forEach((dateStr, index) => {
+        const totalMs = metrics.weeklyData.data[index];
+        if (totalMs > 0) {
+          const daysLogged = 1;
+          const globalDaysLogged = totalMs / msPerDay;
+          
+          metrics.billablePerDay.data[index] = daysLogged;
+          metrics.billableGlobalPerDay.data[index] = globalDaysLogged;
+          
+          const breakdown = metrics.weeklyData.breakdown[index];
+          for (const [pName, pData] of Object.entries(breakdown)) {
+            const pct = pData.val / totalMs;
+            metrics.billablePerDay.breakdown[index][pName] = { val: pct * daysLogged, color: pData.color };
+            metrics.billableGlobalPerDay.breakdown[index][pName] = { val: pct * globalDaysLogged, color: pData.color };
+          }
+        }
+      });
+
       // After initial pass, some tasks may have gained dueDay later (see logs)
-      tasksArr.forEach(task => {
+      filteredTasks.forEach(task => {
         if (!countedOverdue.has(task.id)) {
           const { dueStart, dueEnd } = getDueBounds(task);
           if (!task.isDone && dueStart !== null && now > dueEnd) {
@@ -947,45 +2755,46 @@
         }
       });
       // recompute unplannedCount after potential dueDay additions
-      metrics.unplannedCount = tasksArr.reduce((cnt, t) => {
+      metrics.unplannedCount = filteredTasks.reduce((cnt, t) => {
         const { dueStart } = getDueBounds(t);
         return cnt + ((!t.isDone && !dueStart) ? 1 : 0);
       }, 0);
       
       // Diagnostic: log all done tasks and final tally
-      const doneTasks = tasksArr.filter(t => t.isDone);
-      const doneWithoutTimestamp = doneTasks.filter(t => !t.doneOn);
+      const doneTasks = filteredTasks.filter(tk => tk.isDone);
+      const doneWithoutTimestamp = doneTasks.filter(tk => !tk.doneOn);
       console.log("[sp-dashboard] FINAL METRICS: totalCompleted=", metrics.totalCompleted, "totalTasks=", metrics.totalTasks);
-      console.log("[sp-dashboard] Done tasks in array (count=" + doneTasks.length + "):", doneTasks.map(t => ({ id: t.id, title: t.title, doneOn: t.doneOn })));
+      console.log(`[sp-dashboard] Done tasks in array (count=${doneTasks.length}):`, doneTasks.map(tk => ({ id: tk.id, title: tk.title, doneOn: tk.doneOn })));
       if (doneWithoutTimestamp.length > 0) {
-        console.warn("[sp-dashboard] WARNING: done tasks missing doneOn timestamp:", doneWithoutTimestamp.map(t => ({ id: t.id, title: t.title })));
+        console.warn("[sp-dashboard] WARNING: done tasks missing doneOn timestamp:", doneWithoutTimestamp.map(tk => ({ id: tk.id, title: tk.title })));
       }
-      
+
       // Sort descending by date
       metrics.tableEntries.sort((a, b) => b.date.localeCompare(a.date));
       // report any overdue tasks that had no time entries (might explain zero stats)
-      const overdueNoTime = tasksArr.filter(t => {
-        const keys = Object.keys(t.timeSpentOnDay || {});
-        const { dueStart, dueEnd } = getDueBounds(t);
-        return (!t.isDone && dueStart !== null && dueEnd < rangeEndTime && keys.length === 0);
-      }).map(t => t.id);
+      const overdueNoTime = filteredTasks.filter(tk => {
+        const keys = Object.keys(tk.timeSpentOnDay || {});
+        const { dueStart, dueEnd } = getDueBounds(tk);
+        return (!tk.isDone && dueStart !== null && dueEnd < rangeEndTime && keys.length === 0);
+      }).map(tk => tk.id);
       if (overdueNoTime.length) {
         console.log("[sp-dashboard] overdue tasks with no time entries", overdueNoTime);
       }
       updateDashboardUI(metrics);
-      // attach sort click handlers after table generated
-      attachSortHandlers();
     };
 
     // expose key utilities for testing (JSDOM environment won't execute script tags normally)
     window.formatTime = formatTime;
     window.formatDateShort = formatDateShort;
     window.getDatesInRange = getDatesInRange;
+    window.resetAll = resetAll;
     window.switchTab = switchTab;
     window.processData = processData;
     window.updateBarChart = updateBarChart;
-    window.updatePieChart = updatePieChart;
+    window.updateProjectBreakdown = updateProjectBreakdown;
     window.sortEntries = sortEntries;
+    window.updateProjectFilter = updateProjectFilter;
+    window.updateProjectFilterBtn = updateProjectFilterBtn;
 
     // --- SP INTEGRATION / NATIVE IFRAME COMMS ---
     const pullDataFromSP = async () => {
@@ -994,13 +2803,13 @@
         if (window.PluginAPI) {
           const activeTasks = await window.PluginAPI.getTasks() || [];
           console.log("[sp-dashboard] received activeTasks count", activeTasks.length);
-          const activeTasksDone = activeTasks.filter(t => t.isDone);
-          console.log("[sp-dashboard] activeTasks done:", JSON.stringify(activeTasksDone.map(t => ({ id: t.id, title: t.title, doneOn: t.doneOn })), null, 2));
-          
+          const activeTasksDone = activeTasks.filter(tk => tk.isDone);
+          console.log("[sp-dashboard] activeTasks done:", JSON.stringify(activeTasksDone.map(tk => ({ id: tk.id, title: tk.title, doneOn: tk.doneOn })), null, 2));
+
           const archivedTasks = await window.PluginAPI.getArchivedTasks() || [];
           console.log("[sp-dashboard] received archivedTasks count", archivedTasks.length);
-          const archivedTasksDone = archivedTasks.filter(t => t.isDone);
-          console.log("[sp-dashboard] archivedTasks done:", JSON.stringify(archivedTasksDone.map(t => ({ id: t.id, title: t.title, doneOn: t.doneOn })), null, 2));
+          const archivedTasksDone = archivedTasks.filter(tk => tk.isDone);
+          console.log("[sp-dashboard] archivedTasks done:", JSON.stringify(archivedTasksDone.map(tk => ({ id: tk.id, title: tk.title, doneOn: tk.doneOn })), null, 2));
           
           // Deduplicate tasks: use Map to ensure each task ID appears only once
           // Active tasks take precedence over archived (appear later in spread, so overwrite)
@@ -1023,10 +2832,11 @@
           if (duplicateIds.size > 0) {
             console.log("[sp-dashboard] duplicate task IDs found:", Array.from(duplicateIds));
           }
-          const finalDoneCount = cachedTasks.filter(t => t.isDone).length;
+          const finalDoneCount = cachedTasks.filter(tk => tk.isDone).length;
           console.log("[sp-dashboard] final cachedTasks done count:", finalDoneCount);
           cachedProjects = await window.PluginAPI.getAllProjects() || [];
           console.log("[sp-dashboard] received projects count", cachedProjects.length);
+          updateProjectFilter(cachedProjects, cachedTasks);
           processData(cachedTasks, cachedProjects);
         } else {
           console.warn("[sp-dashboard] PluginAPI missing inside pullDataFromSP");
@@ -1041,14 +2851,52 @@
       console.log("[sp-dashboard] message event received in iframe");
       console.log(event.data)
       if (event.data && event.data.type === 'SP_STATE_CHANGED') {
+        applyDatePickerTheme();
         pullDataFromSP();
       }
     });
 
+    // Restore persisted settings and session before first render
+    // Apply color-scheme to date inputs based on the host app's background variable
+    const applyDatePickerTheme = () => {
+      const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+      let isDark = true;
+      if (bg.startsWith('#')) {
+        const hex = bg.replace('#', '');
+        const r = parseInt(hex.slice(0, 2), 16);
+        isDark = Number.isNaN(r) || r < 128;
+      } else if (bg.startsWith('rgb')) {
+        const match = bg.match(/\d+/);
+        if (match) {
+          const r = parseInt(match[0], 10);
+          isDark = Number.isNaN(r) || r < 128;
+        }
+      }
+      const scheme = isDark ? 'dark' : 'light';
+      document.querySelectorAll('input[type="date"]').forEach(el => { el.style.colorScheme = scheme; });
+    };
+    applyDatePickerTheme();
+
+    loadSettings();
+    syncPieCategories();
+    syncAggRow();
+    loadSession();
+    applyTranslations();
+
     // Initial Bootstrap & Fallback Data Generation
-    setTimeout(() => {
+    setTimeout(async () => {
       console.log("[sp-dashboard] bootstrap timeout fired; PluginAPI exists?", !!window.PluginAPI);
       if (window.PluginAPI) {
+        // restore settings/view state persisted through the plugin API
+        // (same ordering as the localStorage boot path above)
+        const synced = await loadSyncedPersisted();
+        if (synced) {
+          if (synced.settings) applySettings(synced.settings);
+          syncPieCategories();
+          syncAggRow();
+          if (synced.session) applySession(synced.session);
+          applyTranslations();
+        }
         pullDataFromSP();
       } else {
         console.log("[sp-dashboard] No PluginAPI detected. Loading mock data...");
@@ -1102,6 +2950,7 @@
           }
         ];
 
+        updateProjectFilter(cachedProjects, cachedTasks);
         processData(cachedTasks, cachedProjects);
       }
     }, 500);

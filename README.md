@@ -21,6 +21,9 @@ Below are screenshots of the plugin rendered outside of the host app (mock data 
 ![Detailed List View](assets/detailed_list.png)
 *Detailed list of individual time entries and task statuses.*
 
+![Settings View](assets/settings.png)
+*Settings panel - configure chart grouping, date formats, and project breakdown options.*
+
 *(Images are regenerated via the screenshot utility when the UI changes.)*
 
 - Native charts rendered with vanilla JS and CSS (no charting libraries)
@@ -56,7 +59,7 @@ README.md                # This file
 
 1. Download the plugin files for the latest [Release](https://github.com/dougcooper/sp-dashboard/releases)
 2. Open Super Productivity
-3. Go to Settings → Plugins
+3. Go to Settings -> Plugins
 4. Click "Load Plugin from Folder"
 5. Select the `sp-dashboard` zip file
 6. The plugin will be activated automatically
